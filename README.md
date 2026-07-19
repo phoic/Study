@@ -42,6 +42,21 @@ npm run preview
 
 아이콘을 다시 만들려면: `node scripts/generate-icons.mjs`
 
+## 배포
+
+**GitHub Pages (자동)** — `.github/workflows/deploy.yml`가 브랜치에 푸시될 때마다 하위 경로
+(`/<repo>/`)에 맞는 `base`로 빌드해 Pages에 배포한다. 저장소에서 **Settings → Pages →
+Source = "GitHub Actions"** 로 한 번만 설정하면 된다. 이후 주소는
+`https://<사용자>.github.io/<repo>/`.
+
+**루트 호스트 (Cloudflare Pages / Vercel)** — 도메인 루트로 서비스되므로 기본값 그대로
+(`npm run build`) 올리면 된다.
+
+> `base`는 앱이 열리는 경로다. 하위 경로에 올릴 때만 `VITE_BASE=/<repo>/`로 빌드한다
+> (Pages 워크플로가 자동 설정). 이 값이 안 맞으면 자산을 잘못된 경로에서 찾아 **흰 화면**이
+> 뜬다. 로컬에서 하위 경로 빌드를 미리보려면 빌드·프리뷰 모두에 값을 줘야 한다:
+> `VITE_BASE=/sturdy/ npm run build && VITE_BASE=/sturdy/ npm run preview`.
+
 ## 노션 연동 (실데이터)
 
 1. `proxy/README.md`를 따라 Cloudflare Worker를 배포하고 `NOTION_TOKEN`을 설정한다.

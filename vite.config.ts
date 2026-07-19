@@ -3,7 +3,11 @@ import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 
 // https://vite.dev/config/
+// `base` is where the app is served from. Root hosts (Cloudflare Pages, Vercel)
+// keep "/", GitHub Pages serves under "/<repo>/" — set VITE_BASE at build time
+// (the deploy workflow sets it to "/<repo>/" automatically).
 export default defineConfig({
+  base: process.env.VITE_BASE ?? "/",
   plugins: [
     react(),
     VitePWA({
@@ -18,7 +22,6 @@ export default defineConfig({
         background_color: "#e9e7e1",
         display: "standalone",
         orientation: "any",
-        start_url: "/",
         icons: [
           { src: "icons/icon-192.png", sizes: "192x192", type: "image/png" },
           { src: "icons/icon-512.png", sizes: "512x512", type: "image/png" },
