@@ -1,0 +1,3 @@
+# Copy to `.dev.vars` for `wrangler dev` (git-ignored). In production use:
+#   wrangler secret put NOTION_TOKEN
+NOTION_TOKEN=ntn_your_internal_integration_token

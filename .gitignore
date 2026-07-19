@@ -1,0 +1,22 @@
+node_modules
+dist
+dist-ssr
+*.local
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+
+# editor / os
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea
+
+# vite-plugin-pwa generated
+dev-dist
+
+# cloudflare / wrangler
+proxy/node_modules
+proxy/.wrangler
+.dev.vars

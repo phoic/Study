@@ -1,0 +1,17 @@
+name = "study-timer-proxy"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+
+# Public config. The Notion token is a SECRET — never put it here.
+#   wrangler secret put NOTION_TOKEN
+[vars]
+# Notion database id of "공부 계획 2026 여름 (7/13~8/17)".
+NOTION_DATABASE_ID = "28c617361f9c44a78aa0880209dc9613"
+# Notion REST API version (stable; supports databases query + select/number props).
+NOTION_VERSION = "2022-06-28"
+# Study-day boundary hour (KST). Must match the app's studyDayStart.
+STUDY_DAY_START = "5"
+# CORS. "*" is fine for a personal app; set to your PWA origin to lock it down.
+ALLOW_ORIGIN = "*"
+# Property the timer writes actual minutes into (added to the DB, decision #5).
+ACTUAL_PROP = "실제시간(분)"
