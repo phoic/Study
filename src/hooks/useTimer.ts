@@ -39,19 +39,24 @@ export function useTimer(onCommit?: (s: Session) => void): TimerApi {
     return () => clearInterval(iv);
   }, [state.running]);
 
-  const commit = useCallback((subjectId: number, startTs: number, endTs: number) => {
-    if (endTs - startTs < 1000) return; // ignore < 1s blips
+  // Returns the committed duration (ms), or 0 if the blip was too short to keep.
+  // sittingBase is grown by exactly this, so the big timer never diverges from
+  // the per-subject total built from the session log.
+  const commit = useCallback((subjectId: number, startTs: number, endTs: number): number => {
+    const ms = endTs - startTs;
+    if (ms < 250) return 0; // ignore fumbled taps
     const s: Session = { id: uid(), subjectId, startTs, endTs };
     setSessions((prev) => [...prev, s]);
     onCommitRef.current?.(s);
+    return ms;
   }, []);
 
   const toggleRun = useCallback(() => {
     setState((s) => {
       const now = Date.now();
       if (s.running) {
-        commit(s.selectedId, s.liveStartTs, now);
-        return { ...s, running: false, liveStartTs: 0, sittingBase: s.sittingBase + (now - s.liveStartTs) };
+        const committed = commit(s.selectedId, s.liveStartTs, now);
+        return { ...s, running: false, liveStartTs: 0, sittingBase: s.sittingBase + committed };
       }
       return { ...s, running: true, liveStartTs: now };
     });

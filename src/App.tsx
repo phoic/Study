@@ -16,6 +16,7 @@ import {
   addDaysKey,
   fmtHM,
   fmtHMS,
+  fmtHMlabel,
   kstSecondsOfDay,
   longDateLabel,
   studyDayKey,
@@ -118,7 +119,10 @@ export function App() {
     timer.liveStartTs != null ? { subjectId: timerState.selectedId, startTs: timer.liveStartTs, running: true } : undefined;
 
   const secToday = secBySubjectForDay(sessions, todayKey, startHour, live, now);
-  const elapsedSec = Math.floor(timer.elapsedMs / 1000);
+  // Derive the big timer from the SAME `now` as the subject totals so the two
+  // never drift by a second (sittingBase is kept in lock-step with the log).
+  const elapsedMs = timerState.sittingBase + (timerState.running ? now - timerState.liveStartTs : 0);
+  const elapsedSec = Math.floor(elapsedMs / 1000);
 
   // 남은 목표 = 총 목표시간 − 그 과목의 누적 실제시간(모든 기록 + 진행 중). (doc §6)
   let selCumMs = 0;
@@ -183,7 +187,7 @@ export function App() {
             headerDateLabel={longDateLabel(todayKey)}
             dDay={dDayTo(todayKey, VACATION_END)}
             timerSubject={sel}
-            remainingStr={fmtHM(remainingSec)}
+            remainingStr={fmtHMlabel(remainingSec)}
             elapsedStr={fmtHMS(elapsedSec)}
             running={timerState.running}
             onToggle={timer.toggleRun}

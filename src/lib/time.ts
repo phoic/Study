@@ -97,6 +97,16 @@ export function fmtHM(sec: number): string {
   return `${h}:${pad2(m)}`;
 }
 
+/** Unambiguous hour/minute label for large durations, e.g. "40시간", "39시간 59분", "40분". */
+export function fmtHMlabel(sec: number): string {
+  const s = Math.max(0, Math.floor(sec));
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  if (h === 0) return `${m}분`;
+  if (m === 0) return `${h}시간`;
+  return `${h}시간 ${m}분`;
+}
+
 export function hourLabel(h: number): { ap: string; h12: number } {
   const ap = h < 12 ? "오전" : "오후";
   const h12 = ((h + 11) % 12) + 1;
