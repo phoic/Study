@@ -11,7 +11,6 @@ export interface Env {
   ACTUAL_PROP: string;
 }
 
-const KST_MS = 9 * 60 * 60_000;
 const pad2 = (n: number) => String(n).padStart(2, "0");
 
 function cors(env: Env): Record<string, string> {
@@ -30,28 +29,43 @@ function json(data: unknown, env: Env, status = 200): Response {
 }
 
 // ---- KST helpers (mirror src/lib/time.ts) --------------------------------
-function kstDateKeyFromMs(ms: number): string {
-  const d = new Date(ms + KST_MS);
-  return `${d.getUTCFullYear()}-${pad2(d.getUTCMonth() + 1)}-${pad2(d.getUTCDate())}`;
-}
-/** Study-day key of an instant (past-midnight counts to the previous day). */
-function studyDayKeyMs(ms: number, startHour: number): string {
-  const d = new Date(ms + KST_MS);
-  if (d.getUTCHours() < startHour) return kstDateKeyFromMs(ms - 24 * 3600_000);
-  return kstDateKeyFromMs(ms);
-}
 function addDaysKey(dateKey: string, delta: number): string {
   const [y, m, d] = dateKey.split("-").map(Number);
   const nd = new Date(Date.UTC(y, m - 1, d) + delta * 24 * 3600_000);
   return `${nd.getUTCFullYear()}-${pad2(nd.getUTCMonth() + 1)}-${pad2(nd.getUTCDate())}`;
 }
-function isDatetime(v: string): boolean {
-  return v.includes("T");
+// Notion returns these datetimes with the intended **KST wall clock** in the
+// string (e.g. "2026-07-18T08:00:00.000Z" means 오전 8시), so we read the literal
+// date/time and treat it as KST — never re-offset it. This is what makes an
+// 08:00 Notion block land on the 8am grid row (doc §7).
+interface Wall {
+  date: string; // YYYY-MM-DD
+  hh: number;
+  mm: number;
+  hasTime: boolean;
 }
-/** Study-day key a Notion date value belongs to. */
+function wallClock(v: string): Wall {
+  const m = v.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2}))?/);
+  if (!m) return { date: v.slice(0, 10), hh: 0, mm: 0, hasTime: false };
+  return { date: `${m[1]}-${m[2]}-${m[3]}`, hh: m[4] ? +m[4] : 0, mm: m[5] ? +m[5] : 0, hasTime: m[4] != null };
+}
+function isDatetime(v: string): boolean {
+  return wallClock(v).hasTime;
+}
+/** KST-labelled ISO for the frontend, built from the Notion wall clock. */
+function kstIso(v: string): string {
+  const w = wallClock(v);
+  return `${w.date}T${pad2(w.hh)}:${pad2(w.mm)}:00+09:00`;
+}
+function hhmm(v: string): string {
+  const w = wallClock(v);
+  return `${pad2(w.hh)}:${pad2(w.mm)}`;
+}
+/** Study-day key a Notion date value belongs to (05:00 boundary, KST wall clock). */
 function valueStudyDay(startVal: string, startHour: number): string {
-  if (isDatetime(startVal)) return studyDayKeyMs(Date.parse(startVal), startHour);
-  return startVal.slice(0, 10); // date-only → its own calendar day
+  const w = wallClock(startVal);
+  if (w.hasTime && w.hh < startHour) return addDaysKey(w.date, -1);
+  return w.date;
 }
 
 // ---- Notion REST ---------------------------------------------------------
@@ -140,15 +154,15 @@ function buildDay(date: string, pages: any[], startHour: number) {
         id: pg.id,
         subject,
         title,
-        start: dt.start,
-        end: dt.end ?? dt.start,
+        start: kstIso(dt.start),
+        end: kstIso(dt.end ?? dt.start),
         status,
         done: propCheckbox(p["완료"]),
       });
     } else {
       // date-only: belongs to [start .. end] inclusive
-      const startD = dt.start.slice(0, 10);
-      const endD = (dt.end ?? dt.start).slice(0, 10);
+      const startD = wallClock(dt.start).date;
+      const endD = wallClock(dt.end ?? dt.start).date;
       if (date < startD || date > endD) continue;
       allDay.push({ id: pg.id, subject, title, estH: propNumber(p["예상시간(h)"]), status, endDate: dt.end ? endD : null });
     }
@@ -173,7 +187,7 @@ function buildMonth(ym: string, pages: any[], startHour: number) {
       date: day,
       subject,
       title,
-      time: timed ? new Date(Date.parse(dt.start) + KST_MS).toISOString().slice(11, 16) : null,
+      time: timed ? hhmm(dt.start) : null,
       dur: null,
       done,
     });
@@ -193,7 +207,7 @@ async function putActual(env: Env, date: string, bySubject: Record<string, numbe
     // earliest timed plan row for this subject on this study-day
     const candidates = dayRows
       .filter((pg) => propSelect(pg.properties["과목"]) === subject)
-      .sort((a, b) => Date.parse(rowDate(a)!.start) - Date.parse(rowDate(b)!.start));
+      .sort((a, b) => Date.parse(kstIso(rowDate(a)!.start)) - Date.parse(kstIso(rowDate(b)!.start)));
     const target = candidates[0];
     if (!target) {
       results[subject] = "no-matching-row";

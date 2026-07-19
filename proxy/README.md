@@ -22,9 +22,12 @@ token server-side and normalizes rows into the shape the app expects.
 }
 ```
 
-Timezone: Notion stores instants in UTC; a row is a **timed** block when its
-`날짜.start` has a time component, and it is bucketed into the KST study day
-(05:00→05:00, `STUDY_DAY_START`). `POST /api/actual` writes each subject's daily
+Timezone: Notion returns these datetimes with the **intended KST wall clock** in
+the string (e.g. `2026-07-18T08:00:00Z` means 오전 8시), so the proxy reads the
+literal date/time and labels it `+09:00` — it never re-offsets. That's what makes
+an 08:00 Notion block land on the 8am grid row (doc §7). A row is a **timed**
+block when its `날짜.start` has a time component, and it is bucketed into the KST
+study day (05:00→05:00, `STUDY_DAY_START`). `POST /api/actual` writes each subject's daily
 total into the `실제시간(분)` (Number) property on that day's **earliest matching
 timed plan row** for the subject; adjust `putActual()` if you prefer another
 mapping. localStorage stays the app's source of truth — this is for Claude to
