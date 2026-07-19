@@ -40,7 +40,11 @@ export function App() {
   const settings = useMemo(loadSettings, []);
   const startHour = settings.studyDayStart;
 
-  const now = useNow(1000);
+  // useNow only drives idle re-renders; the timer hook re-renders every 250ms
+  // while running. All live math below reads one fresh Date.now() so the big
+  // timer and the "오늘 과목" times stay in lock-step (no 1s drift).
+  useNow(1000);
+  const now = Date.now();
   const [view, setView] = useState<ViewName>("planner");
 
   // sync back to Notion when a session commits (notion mode only)
@@ -116,6 +120,12 @@ export function App() {
   const secToday = secBySubjectForDay(sessions, todayKey, startHour, live, now);
   const elapsedSec = Math.floor(timer.elapsedMs / 1000);
 
+  // 남은 목표 = 총 목표시간 − 그 과목의 누적 실제시간(모든 기록 + 진행 중). (doc §6)
+  let selCumMs = 0;
+  for (const s of sessions) if (s.subjectId === timerState.selectedId) selCumMs += s.endTs - s.startTs;
+  if (live && live.subjectId === timerState.selectedId) selCumMs += now - live.startTs;
+  const remainingSec = Math.max(0, sel.goalH * 3600 - Math.floor(selCumMs / 1000));
+
   // subject rows for "오늘 과목": planned-today ∪ studied-today ∪ selected
   const subjectRows: SubjectRow[] = useMemo(() => {
     const ids = new Set<number>();
@@ -173,7 +183,7 @@ export function App() {
             headerDateLabel={longDateLabel(todayKey)}
             dDay={dDayTo(todayKey, VACATION_END)}
             timerSubject={sel}
-            remainingStr={fmtHM(Math.max(0, (sel.goalH - sel.doneH) * 3600 - elapsedSec))}
+            remainingStr={fmtHM(remainingSec)}
             elapsedStr={fmtHMS(elapsedSec)}
             running={timerState.running}
             onToggle={timer.toggleRun}
