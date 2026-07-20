@@ -46,7 +46,7 @@ const DURS = ["1h", "1시간 30분", "2h", "2h", "1h"];
 export function mockDayEvents(dateKey: string): CalendarEvent[] {
   const [y, mo, d] = dateKey.split("-").map(Number);
   if (!(y === 2026 && mo === 7) || d < 13) return [];
-  const nev = ((d * 3) % 3) + 2;
+  const nev = 2 + (d % 5); // 2–6 events, so dense days exercise the "+N개 더"
   const out: CalendarEvent[] = [];
   for (let k = 0; k < nev; k++) {
     const id = ((d * 7 + k * 11) % 9) + 1;

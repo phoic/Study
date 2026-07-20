@@ -8,6 +8,7 @@ interface Props {
   todayKey: string;
   accentSolid: string;
   monthLabel: string;
+  goalHById: Record<number, number>; // per-subject total goal from the schedule
 }
 
 const card = (children: React.ReactNode, extra: React.CSSProperties = {}) => (
@@ -19,8 +20,9 @@ const label = (t: string) => <div style={{ fontSize: 12, color: "#9a978f", fontW
 
 // Ported from buildMonth(): fed by the real session log instead of mock demo
 // numbers. Cumulative = baseline doneH + this month's recorded actuals.
-export function RecordView({ sessions, startHour, todayKey, accentSolid, monthLabel }: Props) {
+export function RecordView({ sessions, startHour, todayKey, accentSolid, monthLabel, goalHById }: Props) {
   const monthKey = todayKey.slice(0, 7);
+  const goalHOf = (id: number) => goalHById[id] ?? subById(id)?.goalH ?? 0;
 
   // aggregate sessions
   const bySubjectSec: Record<number, number> = {};
@@ -40,8 +42,8 @@ export function RecordView({ sessions, startHour, todayKey, accentSolid, monthLa
 
   const doneHOf = (id: number) => (subById(id)!.doneH ?? 0) + (bySubjectSec[id] ?? 0) / 3600;
   const totalDoneH = SUBJECTS.reduce((a, s) => a + doneHOf(s.id), 0);
-  const totalGoalH = SUBJECTS.reduce((a, s) => a + s.goalH, 0);
-  const goalPct = Math.round((totalDoneH / totalGoalH) * 100);
+  const totalGoalH = SUBJECTS.reduce((a, s) => a + goalHOf(s.id), 0);
+  const goalPct = totalGoalH > 0 ? Math.round((totalDoneH / totalGoalH) * 100) : 0;
 
   const stat = (t: string, v: string, sub: string, subColor?: string) =>
     card(
@@ -66,11 +68,12 @@ export function RecordView({ sessions, startHour, todayKey, accentSolid, monthLa
   );
 
   // per-subject cumulative bars
-  const maxH = Math.max(...SUBJECTS.map((s) => s.goalH));
+  const maxH = Math.max(1, ...SUBJECTS.map((s) => goalHOf(s.id)));
   const sorted = [...SUBJECTS].sort((a, b) => doneHOf(b.id) - doneHOf(a.id));
   const subjRows = sorted.map((raw) => {
     const s = subById(raw.id)!;
     const doneH = doneHOf(raw.id);
+    const goalH = goalHOf(raw.id);
     return (
       <div key={s.id} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 11 }}>
         <span style={{ width: 10, height: 10, flex: "none", borderRadius: 3, background: s.solid }} />
@@ -78,11 +81,11 @@ export function RecordView({ sessions, startHour, todayKey, accentSolid, monthLa
           {s.name}
         </span>
         <div style={{ flex: 1, height: 10, borderRadius: 6, background: "#f0eee7", overflow: "hidden", position: "relative" }}>
-          <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: `${(s.goalH / maxH) * 100}%`, background: s.tint }} />
+          <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: `${(goalH / maxH) * 100}%`, background: s.tint }} />
           <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: `${Math.min(1, doneH / maxH) * 100}%`, background: s.solid, borderRadius: 6 }} />
         </div>
         <span className="tnum" style={{ width: 76, flex: "none", textAlign: "right", fontSize: 11.5, fontWeight: 700, color: "#57544d" }}>
-          {doneH.toFixed(doneH < 10 ? 1 : 0)}/{s.goalH}h
+          {doneH.toFixed(doneH < 10 ? 1 : 0)}/{goalH}h
         </span>
       </div>
     );

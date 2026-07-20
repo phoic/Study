@@ -34,7 +34,7 @@ export function CalendarMonth({ ym, eventsByDay, todayKey, selectedDay, accent, 
     const selected = dateKey === selectedDay;
     const wday = weekdayOfKey(dateKey);
     const weekend = wday === 0 || wday === 6;
-    const shown = Math.min(events.length, 2);
+    const shown = Math.min(events.length, 3);
 
     const evs: React.ReactNode[] = [];
     for (let k = 0; k < shown; k++) {
@@ -135,8 +135,8 @@ export function CalendarMonth({ ym, eventsByDay, todayKey, selectedDay, accent, 
           </div>
         ))}
       </div>
-      <div style={{ flex: 1, minHeight: 0 }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gridAutoRows: "1fr", gap: 8, height: "100%" }}>
+      <div style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gridAutoRows: "minmax(112px, 1fr)", gap: 8 }}>
           {cells}
         </div>
       </div>

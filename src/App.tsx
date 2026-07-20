@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { CalendarEvent, DaySchedule, Session, ViewName } from "./types";
 import { dataSource } from "./data/dataSource";
 import { loadSettings, loadTodos, saveTodos } from "./data/store";
-import { subById } from "./data/subjects";
+import { subById, subjectIdByName } from "./data/subjects";
 import { useTimer } from "./hooks/useTimer";
 import { useNow } from "./hooks/useNow";
 import {
@@ -64,6 +64,29 @@ export function App() {
   // calendar/record can browse other months; default to the current one.
   const [calYm, setCalYm] = useState<string>(ymOfKey(todayKey));
 
+  // per-subject total goal (hours), summed from the Notion schedule; falls back
+  // to each subject's hardcoded goalH when a subject isn't in the plan / offline.
+  const [goalHById, setGoalHById] = useState<Record<number, number>>({});
+  useEffect(() => {
+    let alive = true;
+    dataSource
+      .getGoals()
+      .then((g) => {
+        if (!alive) return;
+        const m: Record<number, number> = {};
+        for (const [name, hours] of Object.entries(g)) {
+          const id = subjectIdByName(name);
+          if (id != null) m[id] = hours;
+        }
+        setGoalHById(m);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
+  const goalHOf = (id: number) => goalHById[id] ?? subById(id)?.goalH ?? 0;
+
   useEffect(() => {
     let alive = true;
     dataSource
@@ -105,15 +128,17 @@ export function App() {
   // todos (calendar completion)
   const [todos, setTodos] = useState<Record<string, boolean>>(loadTodos);
   const [calDay, setCalDay] = useState<string | null>(null);
+  const isDone = (ev: CalendarEvent) => (ev.id in todos ? todos[ev.id] : ev.done ?? false);
   const toggleTodo = (ev: CalendarEvent) => {
+    const willBe = !isDone(ev);
     setTodos((prev) => {
-      const cur = ev.id in prev ? prev[ev.id] : ev.date < todayKey;
-      const next = { ...prev, [ev.id]: !cur };
+      const next = { ...prev, [ev.id]: willBe };
       saveTodos(next);
       return next;
     });
+    // push completion back to Notion (완료 checkbox + 상태)
+    if (dataSource.kind === "notion") dataSource.putTodo(ev.id, willBe).catch((e) => console.warn("putTodo failed", e));
   };
-  const isDone = (ev: CalendarEvent) => (ev.id in todos ? todos[ev.id] : ev.date < todayKey);
 
   // ---- derived values ----
   const sel = subById(timerState.selectedId)!;
@@ -130,7 +155,7 @@ export function App() {
   let selCumMs = 0;
   for (const s of sessions) if (s.subjectId === timerState.selectedId) selCumMs += s.endTs - s.startTs;
   if (live && live.subjectId === timerState.selectedId) selCumMs += now - live.startTs;
-  const remainingSec = Math.max(0, sel.goalH * 3600 - Math.floor(selCumMs / 1000));
+  const remainingSec = Math.max(0, goalHOf(timerState.selectedId) * 3600 - Math.floor(selCumMs / 1000));
 
   // subject rows for "오늘 과목": planned-today ∪ studied-today ∪ selected
   const subjectRows: SubjectRow[] = useMemo(() => {
@@ -227,7 +252,7 @@ export function App() {
         )}
 
         {view === "record" && (
-          <RecordView sessions={sessions} startHour={startHour} todayKey={todayKey} accentSolid={sel.solid} monthLabel={ymLabel(ymOfKey(todayKey))} />
+          <RecordView sessions={sessions} startHour={startHour} todayKey={todayKey} accentSolid={sel.solid} monthLabel={ymLabel(ymOfKey(todayKey))} goalHById={goalHById} />
         )}
       </main>
 

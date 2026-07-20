@@ -222,6 +222,39 @@ async function putActual(env: Env, date: string, bySubject: Record<string, numbe
   return results;
 }
 
+// ---- planned totals (per-subject goal from the schedule) -----------------
+/** Planned hours a row contributes: timed block duration, else 예상시간(h). */
+function plannedHours(pg: any): number {
+  const dt = rowDate(pg);
+  if (!dt) return 0;
+  if (isDatetime(dt.start)) {
+    const s = Date.parse(kstIso(dt.start));
+    const e = Date.parse(kstIso(dt.end ?? dt.start));
+    return Math.max(0, (e - s) / 3_600_000);
+  }
+  return propNumber(pg.properties["예상시간(h)"]) ?? 0;
+}
+
+async function computeGoals(env: Env): Promise<Record<string, number>> {
+  // whole plan (wide range covers the vacation DB)
+  const pages = await queryRange(env, "2026-01-01", "2026-12-31");
+  const bySubject: Record<string, number> = {};
+  for (const pg of pages) {
+    const subj = propSelect(pg.properties["과목"]);
+    if (!subj) continue;
+    bySubject[subj] = (bySubject[subj] ?? 0) + plannedHours(pg);
+  }
+  for (const k of Object.keys(bySubject)) bySubject[k] = Math.round(bySubject[k] * 10) / 10;
+  return bySubject;
+}
+
+// ---- todo completion sync ------------------------------------------------
+async function putTodo(env: Env, pageId: string, done: boolean) {
+  const properties: any = { 완료: { checkbox: done } };
+  if (done) properties["상태"] = { select: { name: "완료" } }; // don't downgrade 상태 on uncheck
+  await notion(env, `/pages/${pageId}`, { method: "PATCH", body: JSON.stringify({ properties }) });
+}
+
 export default {
   async fetch(req: Request, env: Env): Promise<Response> {
     if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors(env) });
@@ -248,6 +281,17 @@ export default {
         if (!body.date || !body.bySubject) return json({ error: "date and bySubject required" }, env, 400);
         const results = await putActual(env, body.date, body.bySubject, startHour);
         return json({ ok: true, results }, env);
+      }
+
+      if (url.pathname === "/api/goals" && req.method === "GET") {
+        return json({ bySubject: await computeGoals(env) }, env);
+      }
+
+      if (url.pathname === "/api/todo" && req.method === "POST") {
+        const body = (await req.json()) as { pageId?: string; done?: boolean };
+        if (!body.pageId) return json({ error: "pageId required" }, env, 400);
+        await putTodo(env, body.pageId, !!body.done);
+        return json({ ok: true }, env);
       }
 
       if (url.pathname === "/" || url.pathname === "/api") return json({ ok: true, service: "study-timer-proxy" }, env);

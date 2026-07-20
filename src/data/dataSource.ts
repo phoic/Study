@@ -26,6 +26,10 @@ export interface DataSource {
   getDay(date: string): Promise<DaySchedule>;
   getMonth(ym: string): Promise<CalendarEvent[]>;
   putActual(date: string, bySubject: Record<string, number>): Promise<void>;
+  /** Per-subject total planned hours from the schedule (과목 name → hours). */
+  getGoals(): Promise<Record<string, number>>;
+  /** Sync a plan row's 완료 checkbox back to Notion. */
+  putTodo(pageId: string, done: boolean): Promise<void>;
 }
 
 class LocalDataSource implements DataSource {
@@ -38,6 +42,12 @@ class LocalDataSource implements DataSource {
   }
   async putActual() {
     // Local mode: actuals already live in localStorage (the session log).
+  }
+  async getGoals() {
+    return {}; // local mode falls back to the hardcoded subject goals
+  }
+  async putTodo() {
+    // Local mode: todo state lives in localStorage only.
   }
 }
 
@@ -91,6 +101,18 @@ class NotionDataSource implements DataSource {
       body: JSON.stringify({ date, bySubject }),
     });
     if (!res.ok) throw new Error(`proxy /api/actual → ${res.status}`);
+  }
+  async getGoals(): Promise<Record<string, number>> {
+    const r = await this.get<{ bySubject: Record<string, number> }>(`/api/goals`);
+    return r.bySubject ?? {};
+  }
+  async putTodo(pageId: string, done: boolean) {
+    const res = await fetch(`${this.base}/api/todo`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ pageId, done }),
+    });
+    if (!res.ok) throw new Error(`proxy /api/todo → ${res.status}`);
   }
 }
 
