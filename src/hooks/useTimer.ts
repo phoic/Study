@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Session, TimerState } from "../types";
 import { loadSessions, loadTimer, saveSessions, saveTimer } from "../data/store";
+import { studyDayKey } from "../lib/time";
 
 // Timestamp-based stopwatch (doc §4-1, §7). The current "sitting" for the
 // selected subject accumulates across pause/resume; committed running segments
@@ -17,6 +18,8 @@ export interface TimerApi {
   toggleRun: () => void;
   resetRun: () => void;
   selectSubject: (id: number) => void;
+  /** Stop and delete a subject's recorded sessions within one study day. */
+  clearSubjectDay: (subjectId: number, dayKey: string, startHour: number) => void;
   /** epoch ms of the live running segment start, or null when paused. */
   liveStartTs: number | null;
 }
@@ -84,6 +87,11 @@ export function useTimer(onCommit?: (s: Session) => void): TimerApi {
     [commit],
   );
 
+  const clearSubjectDay = useCallback((subjectId: number, dayKey: string, startHour: number) => {
+    setState((s) => (s.selectedId === subjectId ? { ...s, running: false, liveStartTs: 0, sittingBase: 0 } : s));
+    setSessions((prev) => prev.filter((x) => !(x.subjectId === subjectId && studyDayKey(x.startTs, startHour) === dayKey)));
+  }, []);
+
   const elapsedMs = state.sittingBase + (state.running ? Date.now() - state.liveStartTs : 0);
 
   return {
@@ -93,6 +101,7 @@ export function useTimer(onCommit?: (s: Session) => void): TimerApi {
     toggleRun,
     resetRun,
     selectSubject,
+    clearSubjectDay,
     liveStartTs: state.running ? state.liveStartTs : null,
   };
 }

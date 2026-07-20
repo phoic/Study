@@ -19,7 +19,9 @@ import {
   fmtHMlabel,
   kstSecondsOfDay,
   longDateLabel,
+  shiftYm,
   studyDayKey,
+  ymLabel,
   ymOfKey,
 } from "./lib/time";
 import { SideNav } from "./components/SideNav";
@@ -59,7 +61,8 @@ export function App() {
   // schedule data
   const [daySchedule, setDaySchedule] = useState<DaySchedule | null>(null);
   const [monthEvents, setMonthEvents] = useState<CalendarEvent[]>([]);
-  const ym = ymOfKey(todayKey);
+  // calendar/record can browse other months; default to the current one.
+  const [calYm, setCalYm] = useState<string>(ymOfKey(todayKey));
 
   useEffect(() => {
     let alive = true;
@@ -75,13 +78,13 @@ export function App() {
   useEffect(() => {
     let alive = true;
     dataSource
-      .getMonth(ym)
+      .getMonth(calYm)
       .then((e) => alive && setMonthEvents(e))
       .catch(() => alive && setMonthEvents([]));
     return () => {
       alive = false;
     };
-  }, [ym]);
+  }, [calYm]);
 
   // push actuals to Notion after a commit
   useEffect(() => {
@@ -119,10 +122,9 @@ export function App() {
     timer.liveStartTs != null ? { subjectId: timerState.selectedId, startTs: timer.liveStartTs, running: true } : undefined;
 
   const secToday = secBySubjectForDay(sessions, todayKey, startHour, live, now);
-  // Derive the big timer from the SAME `now` as the subject totals so the two
-  // never drift by a second (sittingBase is kept in lock-step with the log).
-  const elapsedMs = timerState.sittingBase + (timerState.running ? now - timerState.liveStartTs : 0);
-  const elapsedSec = Math.floor(elapsedMs / 1000);
+  // 열품타 방식: 큰 타이머 = 선택 과목의 "오늘 누적"(기록 + 진행 중). "오늘 과목" 행과
+  // 항상 같은 값이며, 정지/재시작·과목 전환에도 누적이 이어진다.
+  const selTodaySec = secToday[timerState.selectedId] ?? 0;
 
   // 남은 목표 = 총 목표시간 − 그 과목의 누적 실제시간(모든 기록 + 진행 중). (doc §6)
   let selCumMs = 0;
@@ -173,8 +175,6 @@ export function App() {
     return m;
   }, [monthEvents]);
 
-  const [yy, mm] = ym.split("-").map(Number);
-  const monthLabel = `${yy}년 ${mm}월`;
 
   return (
     <div style={{ width: "100vw", height: "100dvh", display: "flex", background: "#faf9f6", color: "#2b2a27", overflow: "hidden", position: "relative", fontSize: 14 }}>
@@ -188,10 +188,14 @@ export function App() {
             dDay={dDayTo(todayKey, VACATION_END)}
             timerSubject={sel}
             remainingStr={fmtHMlabel(remainingSec)}
-            elapsedStr={fmtHMS(elapsedSec)}
+            elapsedStr={fmtHMS(selTodaySec)}
             running={timerState.running}
             onToggle={timer.toggleRun}
-            onReset={timer.resetRun}
+            onReset={() => {
+              if (typeof window !== "undefined" && !window.confirm(`오늘 '${sel.name}' 기록을 지울까요?`)) return;
+              timer.clearSubjectDay(timerState.selectedId, todayKey, startHour);
+              if (dataSource.kind === "notion") setSyncDay(todayKey);
+            }}
             subjectRows={subjectRows}
             onSelect={timer.selectSubject}
             gridDateLabel={longDateLabel(viewedDateKey)}
@@ -208,19 +212,22 @@ export function App() {
 
         {view === "calendar" && (
           <CalendarView
-            ym={ym}
-            monthLabel={monthLabel}
+            ym={calYm}
+            monthLabel={ymLabel(calYm)}
             synced={dataSource.kind === "notion"}
             eventsByDay={eventsByDay}
             todayKey={todayKey}
             selectedDay={calDay}
             accent={sel.solid}
             onSelectDay={setCalDay}
+            onPrevMonth={() => setCalYm((v) => shiftYm(v, -1))}
+            onNextMonth={() => setCalYm((v) => shiftYm(v, 1))}
+            onToday={() => setCalYm(ymOfKey(todayKey))}
           />
         )}
 
         {view === "record" && (
-          <RecordView sessions={sessions} startHour={startHour} todayKey={todayKey} accentSolid={sel.solid} monthLabel={monthLabel} />
+          <RecordView sessions={sessions} startHour={startHour} todayKey={todayKey} accentSolid={sel.solid} monthLabel={ymLabel(ymOfKey(todayKey))} />
         )}
       </main>
 

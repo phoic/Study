@@ -141,3 +141,16 @@ export function addDaysKey(dateKey: string, delta: number): string {
 export function ymOfKey(dateKey: string): string {
   return dateKey.slice(0, 7);
 }
+
+/** Shift a "YYYY-MM" by whole months. */
+export function shiftYm(ym: string, delta: number): string {
+  const [y, m] = ym.split("-").map(Number);
+  const d = new Date(Date.UTC(y, m - 1 + delta, 1));
+  return `${d.getUTCFullYear()}-${pad2(d.getUTCMonth() + 1)}`;
+}
+
+/** "2026년 7월" from a "YYYY-MM". */
+export function ymLabel(ym: string): string {
+  const [y, m] = ym.split("-").map(Number);
+  return `${y}년 ${m}월`;
+}
