@@ -11,6 +11,9 @@ token server-side and normalizes rows into the shape the app expects.
 | `GET` | `/api/schedule?date=YYYY-MM-DD` | Timed + all-day rows for one **KST study day** |
 | `GET` | `/api/schedule/month?ym=YYYY-MM` | Per-day events for the calendar/record views |
 | `POST` | `/api/actual` | Write actual minutes back — body `{ "date": "2026-07-19", "bySubject": { "미적분1": 95 } }` |
+| `GET` | `/api/goals` | Per-subject total planned hours (timed durations + all-day 예상시간(h)) |
+| `POST` | `/api/todo` | Sync a plan row's 완료 checkbox — body `{ "pageId": "…", "done": true }` |
+| `GET`/`POST` | `/api/sessions` | Durable cross-device study-session log (needs the KV binding below) |
 
 `GET /api/schedule` returns:
 
@@ -62,6 +65,23 @@ read when re-planning.
 
    Then point the PWA at it: set `VITE_API_BASE=https://study-timer-proxy.<you>.workers.dev`
    in the app's `.env` and rebuild.
+
+## Cross-device records (KV) — optional but recommended
+
+Study records are stored in the browser by default, so they don't follow you to
+another device/browser. To keep them everywhere, give the Worker a KV namespace:
+
+```bash
+cd proxy
+npx wrangler kv namespace create SESSIONS
+# copy the printed id, then in wrangler.toml uncomment the [[kv_namespaces]]
+# block and paste it as `id = "..."`
+npm run deploy
+```
+
+The app then pulls the cloud log on open, **unions** it with local (so no device
+overwrites another), and pushes changes back. Without KV, `/api/sessions` just
+returns an empty log and the app stays local-only.
 
 ## Config (`wrangler.toml [vars]`)
 

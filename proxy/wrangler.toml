@@ -15,3 +15,10 @@ STUDY_DAY_START = "5"
 ALLOW_ORIGIN = "*"
 # Property the timer writes actual minutes into (added to the DB, decision #5).
 ACTUAL_PROP = "실제시간(분)"
+
+# Durable, cross-device study-session log. Create the namespace once:
+#   npx wrangler kv namespace create SESSIONS
+# then paste the printed id below and uncomment this block, and redeploy.
+# [[kv_namespaces]]
+# binding = "SESSIONS"
+# id = "PASTE_KV_NAMESPACE_ID_HERE"

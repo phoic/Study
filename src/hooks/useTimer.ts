@@ -20,6 +20,8 @@ export interface TimerApi {
   selectSubject: (id: number) => void;
   /** Stop and delete a subject's recorded sessions within one study day. */
   clearSubjectDay: (subjectId: number, dayKey: string, startHour: number) => void;
+  /** Union remote sessions into the local log (by id) — for cross-device sync. */
+  mergeRemote: (remote: Session[]) => void;
   /** epoch ms of the live running segment start, or null when paused. */
   liveStartTs: number | null;
 }
@@ -87,6 +89,17 @@ export function useTimer(onCommit?: (s: Session) => void): TimerApi {
     [commit],
   );
 
+  const mergeRemote = useCallback((remote: Session[]) => {
+    if (!remote.length) return;
+    setSessions((prev) => {
+      const byId = new Map(prev.map((s) => [s.id, s]));
+      let changed = false;
+      for (const r of remote) if (!byId.has(r.id)) (byId.set(r.id, r), (changed = true));
+      if (!changed) return prev;
+      return [...byId.values()].sort((a, b) => a.startTs - b.startTs);
+    });
+  }, []);
+
   const clearSubjectDay = useCallback((subjectId: number, dayKey: string, startHour: number) => {
     setState((s) => (s.selectedId === subjectId ? { ...s, running: false, liveStartTs: 0, sittingBase: 0 } : s));
     setSessions((prev) => prev.filter((x) => !(x.subjectId === subjectId && studyDayKey(x.startTs, startHour) === dayKey)));
@@ -102,6 +115,7 @@ export function useTimer(onCommit?: (s: Session) => void): TimerApi {
     resetRun,
     selectSubject,
     clearSubjectDay,
+    mergeRemote,
     liveStartTs: state.running ? state.liveStartTs : null,
   };
 }

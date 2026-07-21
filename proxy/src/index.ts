@@ -9,7 +9,10 @@ export interface Env {
   STUDY_DAY_START: string;
   ALLOW_ORIGIN: string;
   ACTUAL_PROP: string;
+  SESSIONS?: KVNamespace; // optional: durable cross-device study-session log
 }
+
+const SESSIONS_KEY = "log";
 
 const pad2 = (n: number) => String(n).padStart(2, "0");
 
@@ -285,6 +288,20 @@ export default {
 
       if (url.pathname === "/api/goals" && req.method === "GET") {
         return json({ bySubject: await computeGoals(env) }, env);
+      }
+
+      // Durable session log (KV) so records survive device/browser changes.
+      if (url.pathname === "/api/sessions" && req.method === "GET") {
+        if (!env.SESSIONS) return json({ sessions: [], stored: false }, env);
+        const raw = await env.SESSIONS.get(SESSIONS_KEY);
+        return json({ sessions: raw ? JSON.parse(raw) : [], stored: true }, env);
+      }
+      if (url.pathname === "/api/sessions" && req.method === "POST") {
+        if (!env.SESSIONS) return json({ ok: false, error: "KV not configured" }, env);
+        const body = (await req.json()) as { sessions?: unknown[] };
+        const sessions = Array.isArray(body.sessions) ? body.sessions : [];
+        await env.SESSIONS.put(SESSIONS_KEY, JSON.stringify(sessions));
+        return json({ ok: true, count: sessions.length }, env);
       }
 
       if (url.pathname === "/api/todo" && req.method === "POST") {

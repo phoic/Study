@@ -1,4 +1,4 @@
-import type { AllDayItem, CalendarEvent, DaySchedule, TimedBlock } from "../types";
+import type { AllDayItem, CalendarEvent, DaySchedule, Session, TimedBlock } from "../types";
 import { mockDay, mockMonth } from "./mockSchedule";
 import { subjectIdByName } from "./subjects";
 
@@ -30,6 +30,9 @@ export interface DataSource {
   getGoals(): Promise<Record<string, number>>;
   /** Sync a plan row's 완료 checkbox back to Notion. */
   putTodo(pageId: string, done: boolean): Promise<void>;
+  /** Durable study-session log (cross-device). Empty in local mode. */
+  getSessions(): Promise<Session[]>;
+  putSessions(sessions: Session[]): Promise<void>;
 }
 
 class LocalDataSource implements DataSource {
@@ -48,6 +51,12 @@ class LocalDataSource implements DataSource {
   }
   async putTodo() {
     // Local mode: todo state lives in localStorage only.
+  }
+  async getSessions(): Promise<Session[]> {
+    return []; // local mode: the log lives only in localStorage
+  }
+  async putSessions() {
+    // Local mode: nothing to back up to.
   }
 }
 
@@ -113,6 +122,18 @@ class NotionDataSource implements DataSource {
       body: JSON.stringify({ pageId, done }),
     });
     if (!res.ok) throw new Error(`proxy /api/todo → ${res.status}`);
+  }
+  async getSessions(): Promise<Session[]> {
+    const r = await this.get<{ sessions: Session[] }>(`/api/sessions`);
+    return Array.isArray(r.sessions) ? r.sessions : [];
+  }
+  async putSessions(sessions: Session[]) {
+    const res = await fetch(`${this.base}/api/sessions`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ sessions }),
+    });
+    if (!res.ok) throw new Error(`proxy /api/sessions → ${res.status}`);
   }
 }
 

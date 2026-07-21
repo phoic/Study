@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { CalendarEvent, DaySchedule, Session, ViewName } from "./types";
 import { dataSource } from "./data/dataSource";
 import { loadSettings, loadTodos, saveTodos } from "./data/store";
@@ -94,6 +94,36 @@ export function App() {
     };
   }, []);
   const goalHOf = (id: number) => goalHById[id] ?? subById(id)?.goalH ?? 0;
+
+  // Cross-device session sync: pull the cloud log once and union it into local,
+  // then push changes (debounced). Pushing is gated on `hydrated` so a fresh
+  // device never overwrites the cloud with its empty local log before pulling.
+  const [hydrated, setHydrated] = useState(dataSource.kind !== "notion");
+  useEffect(() => {
+    if (dataSource.kind !== "notion") return;
+    let alive = true;
+    dataSource
+      .getSessions()
+      .then((remote) => {
+        if (!alive) return;
+        timer.mergeRemote(remote);
+        setHydrated(true);
+      })
+      .catch((e) => console.warn("session hydrate failed (won't overwrite cloud)", e));
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const pushRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => {
+    if (!hydrated || dataSource.kind !== "notion") return;
+    clearTimeout(pushRef.current);
+    pushRef.current = setTimeout(() => {
+      dataSource.putSessions(timer.sessions).catch((e) => console.warn("session push failed", e));
+    }, 1500);
+    return () => clearTimeout(pushRef.current);
+  }, [timer.sessions, hydrated]);
 
   useEffect(() => {
     let alive = true;
