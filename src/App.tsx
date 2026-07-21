@@ -5,6 +5,7 @@ import { loadSettings, loadTodos, saveTodos } from "./data/store";
 import { subById, subjectIdByName } from "./data/subjects";
 import { useTimer } from "./hooks/useTimer";
 import { useNow } from "./hooks/useNow";
+import { useIsMobile } from "./hooks/useIsMobile";
 import {
   buildActualCells,
   buildPlannedCells,
@@ -29,7 +30,12 @@ import { PlannerView } from "./views/PlannerView";
 import { CalendarView } from "./views/CalendarView";
 import { RecordView } from "./views/RecordView";
 import { DayDetailModal } from "./components/DayDetailModal";
-import type { SubjectRow } from "./components/SubjectList";
+import { SubjectList, type SubjectRow } from "./components/SubjectList";
+import { TimerCard } from "./components/TimerCard";
+import { DayGrid } from "./components/DayGrid";
+import { AllDayStrip } from "./components/AllDayStrip";
+import { MobileTabBar, type MobileTab } from "./components/MobileTabBar";
+import { MobileCalendar } from "./components/MobileCalendar";
 
 const VACATION_END = "2026-08-17"; // 여름방학 종료 (D-day 기준)
 
@@ -49,6 +55,8 @@ export function App() {
   useNow(1000);
   const now = Date.now();
   const [view, setView] = useState<ViewName>("planner");
+  const isMobile = useIsMobile();
+  const [mtab, setMtab] = useState<MobileTab>("timer");
 
   // sync back to Notion when a session commits (notion mode only)
   const [syncDay, setSyncDay] = useState<string | null>(null);
@@ -200,7 +208,104 @@ export function App() {
     return m;
   }, [monthEvents]);
 
+  const clearSelectedToday = () => {
+    if (typeof window !== "undefined" && !window.confirm(`오늘 '${sel.name}' 기록을 지울까요?`)) return;
+    timer.clearSubjectDay(timerState.selectedId, todayKey, startHour);
+    if (dataSource.kind === "notion") setSyncDay(todayKey);
+  };
 
+  const dayModal = calDay ? (
+    <DayDetailModal
+      dateKey={calDay}
+      events={eventsByDay.get(calDay) ?? []}
+      isToday={calDay === todayKey}
+      accent={sel.solid}
+      isDone={isDone}
+      onToggle={toggleTodo}
+      onClose={() => setCalDay(null)}
+      sheet={isMobile}
+    />
+  ) : null;
+
+  const mNav: React.CSSProperties = {
+    width: 30, height: 30, flex: "none", border: "1px solid rgba(0,0,0,.09)", borderRadius: 9,
+    background: "#fff", color: "#8a8880", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+  };
+  const chevL = <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M15 5l-7 7 7 7" /></svg>;
+  const chevR = <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M9 5l7 7-7 7" /></svg>;
+  const swatch = (bg: string) => <span style={{ width: 18, height: 10, borderRadius: 3, background: bg }} />;
+
+  // ---------- mobile layout ----------
+  if (isMobile) {
+    return (
+      <div style={{ width: "100%", height: "100dvh", display: "flex", flexDirection: "column", background: "#faf9f6", color: "#2b2a27", position: "relative", fontSize: 14, overflow: "hidden" }}>
+        <div className="noscroll" style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
+          {mtab === "timer" && (
+            <div style={{ padding: "18px 18px 24px" }}>
+              <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 16 }}>
+                <div>
+                  <div style={{ fontSize: 12, color: "#9a978f", fontWeight: 600 }}>오늘 총 공부</div>
+                  <div className="tnum" style={{ fontSize: 30, fontWeight: 800, letterSpacing: "-.02em", marginTop: 2 }}>{fmtHM(totalSecForDay(secToday))}</div>
+                </div>
+                <div style={{ textAlign: "right" }}>
+                  <div style={{ fontSize: 12, color: "#9a978f", fontWeight: 600 }}>{longDateLabel(todayKey)}</div>
+                  <div style={{ fontSize: 12, color: "#c0bdb4", marginTop: 3 }}>여름방학 D-{dDayTo(todayKey, VACATION_END)}</div>
+                </div>
+              </div>
+              <div style={{ marginBottom: 20 }}>
+                <TimerCard subject={sel} remainingStr={fmtHMlabel(remainingSec)} elapsedStr={fmtHMS(selTodaySec)} running={timerState.running} onToggle={timer.toggleRun} onReset={clearSelectedToday} />
+              </div>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", margin: "0 2px 12px" }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: "#6d6a62" }}>오늘 과목</span>
+                <span style={{ fontSize: 11, color: "#b3b0a7", fontWeight: 600 }}>오늘 공부한 시간</span>
+              </div>
+              <SubjectList rows={subjectRows} onSelect={timer.selectSubject} />
+            </div>
+          )}
+
+          {mtab === "timeline" && (
+            <div style={{ padding: "14px 14px 24px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "0 2px 12px" }}>
+                <button onClick={() => setViewedDateKey((k) => addDaysKey(k, -1))} className="hoverable" style={mNav} aria-label="이전 날">{chevL}</button>
+                <div style={{ fontSize: 17, fontWeight: 800, letterSpacing: "-.01em" }}>{longDateLabel(viewedDateKey)}</div>
+                <button onClick={() => setViewedDateKey((k) => addDaysKey(k, 1))} className="hoverable" style={mNav} aria-label="다음 날">{chevR}</button>
+                <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 12, fontSize: 11, color: "#a8a59d", fontWeight: 600 }}>
+                  <span style={{ display: "flex", alignItems: "center", gap: 5 }}>{swatch("oklch(0.94 0.045 255)")}계획</span>
+                  <span style={{ display: "flex", alignItems: "center", gap: 5 }}>{swatch("oklch(0.64 0.13 255)")}실제</span>
+                </div>
+              </div>
+              <div style={{ marginBottom: 10 }}><AllDayStrip items={daySchedule?.allDay ?? []} /></div>
+              <DayGrid plannedCells={plannedCells} actualCells={actualCells} startHour={startHour} rowHeight={26} nowSecOfDay={viewedIsToday ? kstSecondsOfDay(now) : null} running={timerState.running} />
+            </div>
+          )}
+
+          {mtab === "calendar" && (
+            <div style={{ padding: "14px 14px 24px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+                <button onClick={() => setCalYm((v) => shiftYm(v, -1))} className="hoverable" style={mNav} aria-label="이전 달">{chevL}</button>
+                <div style={{ fontSize: 19, fontWeight: 800, letterSpacing: "-.02em", minWidth: 92, textAlign: "center" }}>{ymLabel(calYm)}</div>
+                <button onClick={() => setCalYm((v) => shiftYm(v, 1))} className="hoverable" style={mNav} aria-label="다음 달">{chevR}</button>
+                <button onClick={() => setCalYm(ymOfKey(todayKey))} className="hoverable" style={{ ...mNav, width: "auto", padding: "0 12px", fontSize: 12, fontWeight: 700, color: "#6d6a62" }}>오늘</button>
+              </div>
+              <MobileCalendar ym={calYm} eventsByDay={eventsByDay} todayKey={todayKey} accent={sel.solid} onSelectDay={setCalDay} />
+            </div>
+          )}
+
+          {mtab === "record" && (
+            <div style={{ padding: "16px 16px 24px" }}>
+              <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-.02em" }}>학습 기록</div>
+              <div style={{ fontSize: 12, color: "#a8a59d", fontWeight: 600, margin: "4px 0 16px" }}>{ymLabel(ymOfKey(todayKey))}</div>
+              <RecordView sessions={sessions} startHour={startHour} todayKey={todayKey} accentSolid={sel.solid} monthLabel={ymLabel(ymOfKey(todayKey))} goalHById={goalHById} stacked />
+            </div>
+          )}
+        </div>
+        <MobileTabBar tab={mtab} onChange={setMtab} />
+        {dayModal}
+      </div>
+    );
+  }
+
+  // ---------- desktop / iPad layout ----------
   return (
     <div style={{ width: "100vw", height: "100dvh", display: "flex", background: "#faf9f6", color: "#2b2a27", overflow: "hidden", position: "relative", fontSize: 14 }}>
       <SideNav view={view} onChange={setView} />
@@ -216,11 +321,7 @@ export function App() {
             elapsedStr={fmtHMS(selTodaySec)}
             running={timerState.running}
             onToggle={timer.toggleRun}
-            onReset={() => {
-              if (typeof window !== "undefined" && !window.confirm(`오늘 '${sel.name}' 기록을 지울까요?`)) return;
-              timer.clearSubjectDay(timerState.selectedId, todayKey, startHour);
-              if (dataSource.kind === "notion") setSyncDay(todayKey);
-            }}
+            onReset={clearSelectedToday}
             subjectRows={subjectRows}
             onSelect={timer.selectSubject}
             gridDateLabel={longDateLabel(viewedDateKey)}
@@ -256,17 +357,7 @@ export function App() {
         )}
       </main>
 
-      {calDay && (
-        <DayDetailModal
-          dateKey={calDay}
-          events={eventsByDay.get(calDay) ?? []}
-          isToday={calDay === todayKey}
-          accent={sel.solid}
-          isDone={isDone}
-          onToggle={toggleTodo}
-          onClose={() => setCalDay(null)}
-        />
-      )}
+      {dayModal}
     </div>
   );
 }

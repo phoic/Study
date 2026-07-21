@@ -10,11 +10,12 @@ interface Props {
   isDone: (ev: CalendarEvent) => boolean;
   onToggle: (ev: CalendarEvent) => void;
   onClose: () => void;
+  sheet?: boolean; // bottom-sheet style for phones
 }
 
-// Ported from buildDayModal()/buildDayDetail(): a centered card listing a day's
-// planned todos with completion checkboxes.
-export function DayDetailModal({ dateKey, events, isToday, accent, isDone, onToggle, onClose }: Props) {
+// Ported from buildDayModal()/buildDayDetail(): a card listing a day's planned
+// todos with completion checkboxes — centered on desktop, a bottom sheet on phones.
+export function DayDetailModal({ dateKey, events, isToday, accent, isDone, onToggle, onClose, sheet }: Props) {
   const [, mo, d] = dateKey.split("-").map(Number);
   const doneN = events.filter((e) => isDone(e)).length;
 
@@ -27,12 +28,13 @@ export function DayDetailModal({ dateKey, events, isToday, accent, isDone, onTog
         background: "rgba(40,38,34,.34)",
         backdropFilter: "blur(3px)",
         display: "flex",
-        alignItems: "center",
+        alignItems: sheet ? "flex-end" : "center",
         justifyContent: "center",
         zIndex: 50,
+        padding: sheet ? "0 10px 10px" : 0,
       }}
     >
-      <div onClick={(e) => e.stopPropagation()} style={{ width: 470, maxHeight: "82%", display: "flex", flexDirection: "column", position: "relative" }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ width: sheet ? "100%" : "min(470px, calc(100vw - 24px))", maxHeight: "82%", display: "flex", flexDirection: "column", position: "relative" }}>
         <button
           onClick={onClose}
           style={{

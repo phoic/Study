@@ -9,6 +9,7 @@ interface Props {
   accentSolid: string;
   monthLabel: string;
   goalHById: Record<number, number>; // per-subject total goal from the schedule
+  stacked?: boolean; // vertical layout for phones
 }
 
 const card = (children: React.ReactNode, extra: React.CSSProperties = {}) => (
@@ -20,7 +21,7 @@ const label = (t: string) => <div style={{ fontSize: 12, color: "#9a978f", fontW
 
 // Ported from buildMonth(): fed by the real session log instead of mock demo
 // numbers. Cumulative = baseline doneH + this month's recorded actuals.
-export function RecordView({ sessions, startHour, todayKey, accentSolid, monthLabel, goalHById }: Props) {
+export function RecordView({ sessions, startHour, todayKey, accentSolid, monthLabel, goalHById, stacked = false }: Props) {
   const monthKey = todayKey.slice(0, 7);
   const goalHOf = (id: number) => goalHById[id] ?? subById(id)?.goalH ?? 0;
 
@@ -56,11 +57,11 @@ export function RecordView({ sessions, startHour, todayKey, accentSolid, monthLa
           {sub}
         </div>,
       ],
-      { flex: 1 },
+      { flex: stacked ? "1 1 100px" : 1, minWidth: stacked ? 100 : undefined },
     );
 
   const topRow = (
-    <div style={{ display: "flex", gap: 14 }}>
+    <div style={{ display: "flex", gap: stacked ? 10 : 14, flexWrap: stacked ? "wrap" : "nowrap" }}>
       {stat("이번 달 누적", fmtHM(monthTotalSec), "실제 기록 기준", "oklch(0.55 0.12 150)")}
       {stat("하루 평균", fmtHM(dailyAvgSec), activeDays ? `기록 있는 ${activeDays}일 기준` : "아직 기록 없음")}
       {stat("목표 달성률", `${goalPct}%`, `총 ${Math.round(totalGoalH)}h 중 ${Math.round(totalDoneH)}h`)}
@@ -92,7 +93,7 @@ export function RecordView({ sessions, startHour, todayKey, accentSolid, monthLa
   });
   const subjCard = card(
     [<div key={0} style={{ marginBottom: 16 }}>{label("과목별 누적")}</div>, ...subjRows],
-    { flex: 1.15, display: "flex", flexDirection: "column" },
+    { flex: stacked ? "none" : 1.15, display: "flex", flexDirection: "column" },
   );
 
   // 14-day daily bars
@@ -102,7 +103,7 @@ export function RecordView({ sessions, startHour, todayKey, accentSolid, monthLa
   });
   const maxD = Math.max(1, ...days.map((d) => d.sec), 3600 * 4); // at least a 4h ceiling for scale
   const bars = (
-    <div style={{ flex: 1, display: "flex", alignItems: "flex-end", gap: 6, minHeight: 0 }}>
+    <div style={{ flex: stacked ? "none" : 1, height: stacked ? 130 : undefined, display: "flex", alignItems: "flex-end", gap: 6, minHeight: 0 }}>
       {days.map((x) => (
         <div key={x.dayKey} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, height: "100%", justifyContent: "flex-end" }}>
           <div
@@ -124,18 +125,20 @@ export function RecordView({ sessions, startHour, todayKey, accentSolid, monthLa
   );
   const dailyCard = card(
     [<div key={0} style={{ marginBottom: 16 }}>{label("일별 공부량 · 최근 14일")}</div>, bars],
-    { flex: 1, display: "flex", flexDirection: "column" },
+    { flex: stacked ? "none" : 1, display: "flex", flexDirection: "column" },
   );
 
   return (
-    <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "26px 34px 30px", minHeight: 0 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 20 }}>
-        <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: "-.02em" }}>학습 기록</div>
-        <div style={{ fontSize: 12.5, color: "#a8a59d", fontWeight: 600, background: "#f2f0ea", padding: "5px 11px", borderRadius: 8 }}>{monthLabel}</div>
-      </div>
-      <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", gap: 14 }}>
+    <div style={stacked ? { display: "flex", flexDirection: "column", gap: 14 } : { flex: 1, display: "flex", flexDirection: "column", padding: "26px 34px 30px", minHeight: 0 }}>
+      {!stacked && (
+        <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 20 }}>
+          <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: "-.02em" }}>학습 기록</div>
+          <div style={{ fontSize: 12.5, color: "#a8a59d", fontWeight: 600, background: "#f2f0ea", padding: "5px 11px", borderRadius: 8 }}>{monthLabel}</div>
+        </div>
+      )}
+      <div style={stacked ? { display: "flex", flexDirection: "column", gap: 12 } : { flex: 1, minHeight: 0, display: "flex", flexDirection: "column", gap: 14 }}>
         {topRow}
-        <div style={{ flex: 1, display: "flex", gap: 14, minHeight: 0 }}>
+        <div style={stacked ? { display: "flex", flexDirection: "column", gap: 12 } : { flex: 1, display: "flex", gap: 14, minHeight: 0 }}>
           {subjCard}
           {dailyCard}
         </div>
