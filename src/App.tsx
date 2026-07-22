@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { CalendarEvent, DaySchedule, Session, ViewName } from "./types";
+import type { CalendarEvent, DaySchedule, ReviewNote, Session, ViewName } from "./types";
 import { dataSource } from "./data/dataSource";
-import { loadSettings, loadTodos, saveTodos } from "./data/store";
-import { subById, subjectIdByName } from "./data/subjects";
+import { loadNotes, loadSettings, loadTodos, saveNotes, saveTodos } from "./data/store";
+import { SUBJECTS, subById, subjectIdByName } from "./data/subjects";
 import { useTimer } from "./hooks/useTimer";
 import { useNow } from "./hooks/useNow";
 import { useIsMobile } from "./hooks/useIsMobile";
 import {
   buildActualCells,
   buildPlannedCells,
+  cumulativeSecBySubject,
   secBySubjectForDay,
   totalSecForDay,
   type LiveSegment,
@@ -29,6 +30,8 @@ import { SideNav } from "./components/SideNav";
 import { PlannerView } from "./views/PlannerView";
 import { CalendarView } from "./views/CalendarView";
 import { RecordView } from "./views/RecordView";
+import { MemoView } from "./views/MemoView";
+import { FocusOverlay } from "./components/FocusOverlay";
 import { DayDetailModal } from "./components/DayDetailModal";
 import { SubjectList, type SubjectRow } from "./components/SubjectList";
 import { TimerCard } from "./components/TimerCard";
@@ -57,6 +60,7 @@ export function App() {
   const [view, setView] = useState<ViewName>("planner");
   const isMobile = useIsMobile();
   const [mtab, setMtab] = useState<MobileTab>("timer");
+  const [focus, setFocus] = useState(false); // 집중 모드 오버레이
 
   // sync back to Notion when a session commits (notion mode only)
   const [syncDay, setSyncDay] = useState<string | null>(null);
@@ -125,6 +129,51 @@ export function App() {
     return () => clearTimeout(pushRef.current);
   }, [timer.sessions, hydrated]);
 
+  // ---- 재풀이 메모 (로컬 + KV 동기화, 세션과 동일 패턴) ----
+  const noteUid = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+  const [notes, setNotes] = useState<ReviewNote[]>(loadNotes);
+  useEffect(() => saveNotes(notes), [notes]);
+  const addNote = (subjectId: number, text: string, dueTs: number | null) =>
+    setNotes((prev) => [{ id: noteUid(), subjectId, text, createdTs: Date.now(), done: false, dueTs }, ...prev]);
+  const toggleNote = (id: string) => setNotes((prev) => prev.map((n) => (n.id === id ? { ...n, done: !n.done } : n)));
+  const deleteNote = (id: string) => setNotes((prev) => prev.filter((n) => n.id !== id));
+  // 집중 모드/타이머의 ＋다시 풀 문제 퀵애드 (현재 선택 과목 프리필)
+  const quickAddNote = () => {
+    const text = typeof window !== "undefined" ? window.prompt(`'${sel.name}' — 다시 풀 문제 메모`) : null;
+    if (text && text.trim()) addNote(timerState.selectedId, text.trim(), null);
+  };
+
+  const [notesHydrated, setNotesHydrated] = useState(dataSource.kind !== "notion");
+  useEffect(() => {
+    if (dataSource.kind !== "notion") return;
+    let alive = true;
+    dataSource
+      .getNotes()
+      .then((remote) => {
+        if (!alive) return;
+        setNotes((prev) => {
+          const byId = new Map(prev.map((n) => [n.id, n]));
+          for (const r of remote) if (!byId.has(r.id)) byId.set(r.id, r);
+          return [...byId.values()].sort((a, b) => b.createdTs - a.createdTs);
+        });
+        setNotesHydrated(true);
+      })
+      .catch((e) => console.warn("notes hydrate failed (won't overwrite cloud)", e));
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const notesPushRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => {
+    if (!notesHydrated || dataSource.kind !== "notion") return;
+    clearTimeout(notesPushRef.current);
+    notesPushRef.current = setTimeout(() => {
+      dataSource.putNotes(notes).catch((e) => console.warn("notes push failed", e));
+    }, 1500);
+    return () => clearTimeout(notesPushRef.current);
+  }, [notes, notesHydrated]);
+
   useEffect(() => {
     let alive = true;
     dataSource
@@ -189,6 +238,35 @@ export function App() {
   // 항상 같은 값이며, 정지/재시작·과목 전환에도 누적이 이어진다.
   const selTodaySec = secToday[timerState.selectedId] ?? 0;
 
+  // 타이머 시작 시 집중 모드 진입(일시정지→시작일 때만). 정지는 그대로.
+  const startFocus = () => {
+    const wasRunning = timerState.running;
+    timer.toggleRun();
+    if (!wasRunning) setFocus(true);
+  };
+
+  // 자투리 추천: 가장 뒤처진 과목 1개. 남은목표를 남은일수로 나눈 "하루 필요"보다
+  // 오늘 공부가 가장 모자란 과목을 부드럽게 맨 위로 추천한다(자유 선택은 유지).
+  const recommendedId: number | null = useMemo(() => {
+    const cumSec = cumulativeSecBySubject(sessions, live, now);
+    const remainingDays = Math.max(1, dDayTo(todayKey, VACATION_END));
+    let best: number | null = null;
+    let bestDeficit = 0;
+    for (const s of SUBJECTS) {
+      const goalSec = goalHOf(s.id) * 3600;
+      if (goalSec <= 0) continue;
+      const remainingGoal = Math.max(0, goalSec - (cumSec[s.id] ?? 0));
+      if (remainingGoal <= 0) continue;
+      const deficit = remainingGoal / remainingDays - (secToday[s.id] ?? 0);
+      if (deficit > bestDeficit) {
+        bestDeficit = deficit;
+        best = s.id;
+      }
+    }
+    return best;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(secToday), sessions, goalHById, todayKey]);
+
   // 남은 목표 = 총 목표시간 − 그 과목의 누적 실제시간(모든 기록 + 진행 중). (doc §6)
   let selCumMs = 0;
   for (const s of sessions) if (s.subjectId === timerState.selectedId) selCumMs += s.endTs - s.startTs;
@@ -201,7 +279,8 @@ export function App() {
     for (const b of daySchedule?.timed ?? []) if (b.subjectId != null) ids.add(b.subjectId);
     for (const k of Object.keys(secToday)) ids.add(Number(k));
     ids.add(timerState.selectedId);
-    return [...ids]
+    if (recommendedId != null) ids.add(recommendedId);
+    const rows = [...ids]
       .map((id) => {
         const s = subById(id)!;
         const sec = secToday[id] ?? 0;
@@ -217,13 +296,17 @@ export function App() {
           pct: `${Math.round(Math.min(1, sec / goalSec) * 100)}%`,
           timeColor: met ? s.solid : on && timerState.running ? s.solid : sec > 0 ? "#3a382f" : "#c4c1b8",
           on,
+          recommended: id === recommendedId,
           _sec: sec,
         };
       })
-      .sort((a, b) => b._sec - a._sec)
-      .map(({ _sec, ...r }) => r);
+      .sort((a, b) => b._sec - a._sec);
+    // 추천 과목을 목록 맨 위로
+    const ri = rows.findIndex((r) => r.recommended);
+    if (ri > 0) rows.unshift(rows.splice(ri, 1)[0]);
+    return rows.map(({ _sec, ...r }) => r);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [daySchedule, timerState.selectedId, timerState.running, JSON.stringify(secToday)]);
+  }, [daySchedule, timerState.selectedId, timerState.running, recommendedId, JSON.stringify(secToday)]);
 
   const plannedCells = useMemo(() => buildPlannedCells(daySchedule?.timed ?? []), [daySchedule]);
   const actualCells = buildActualCells(sessions, viewedDateKey, startHour, viewedIsToday ? live : undefined, now);
@@ -283,7 +366,7 @@ export function App() {
                 </div>
               </div>
               <div style={{ marginBottom: 20 }}>
-                <TimerCard subject={sel} remainingStr={fmtHMlabel(remainingSec)} elapsedStr={fmtHMS(selTodaySec)} running={timerState.running} onToggle={timer.toggleRun} onReset={clearSelectedToday} />
+                <TimerCard subject={sel} remainingStr={fmtHMlabel(remainingSec)} elapsedStr={fmtHMS(selTodaySec)} running={timerState.running} onToggle={startFocus} onReset={clearSelectedToday} />
               </div>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", margin: "0 2px 12px" }}>
                 <span style={{ fontSize: 13, fontWeight: 700, color: "#6d6a62" }}>오늘 과목</span>
@@ -328,8 +411,25 @@ export function App() {
               <RecordView sessions={sessions} startHour={startHour} todayKey={todayKey} accentSolid={sel.solid} monthLabel={ymLabel(ymOfKey(todayKey))} goalHById={goalHById} stacked />
             </div>
           )}
+
+          {mtab === "memo" && (
+            <div style={{ padding: "16px 16px 24px" }}>
+              <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-.02em", marginBottom: 14 }}>재풀이 메모</div>
+              <MemoView notes={notes} selectedId={timerState.selectedId} onAdd={addNote} onToggle={toggleNote} onDelete={deleteNote} stacked />
+            </div>
+          )}
         </div>
         <MobileTabBar tab={mtab} onChange={setMtab} />
+        {focus && (
+          <FocusOverlay
+            subject={sel}
+            elapsedStr={fmtHMS(selTodaySec)}
+            running={timerState.running}
+            onToggle={timer.toggleRun}
+            onExit={() => setFocus(false)}
+            onAddNote={quickAddNote}
+          />
+        )}
         {dayModal}
       </div>
     );
@@ -350,7 +450,7 @@ export function App() {
             remainingStr={fmtHMlabel(remainingSec)}
             elapsedStr={fmtHMS(selTodaySec)}
             running={timerState.running}
-            onToggle={timer.toggleRun}
+            onToggle={startFocus}
             onReset={clearSelectedToday}
             subjectRows={subjectRows}
             onSelect={timer.selectSubject}
@@ -385,8 +485,22 @@ export function App() {
         {view === "record" && (
           <RecordView sessions={sessions} startHour={startHour} todayKey={todayKey} accentSolid={sel.solid} monthLabel={ymLabel(ymOfKey(todayKey))} goalHById={goalHById} />
         )}
+
+        {view === "memo" && (
+          <MemoView notes={notes} selectedId={timerState.selectedId} onAdd={addNote} onToggle={toggleNote} onDelete={deleteNote} />
+        )}
       </main>
 
+      {focus && (
+        <FocusOverlay
+          subject={sel}
+          elapsedStr={fmtHMS(selTodaySec)}
+          running={timerState.running}
+          onToggle={timer.toggleRun}
+          onExit={() => setFocus(false)}
+          onAddNote={quickAddNote}
+        />
+      )}
       {dayModal}
     </div>
   );

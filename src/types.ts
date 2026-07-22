@@ -51,6 +51,16 @@ export interface Session {
   endTs: number; // epoch ms
 }
 
+/** A "re-solve" note — a problem worth revisiting, grouped by subject. */
+export interface ReviewNote {
+  id: string;
+  subjectId: number;
+  text: string;
+  createdTs: number; // epoch ms
+  done: boolean; // 다시 풀었음
+  dueTs?: number | null; // optional "언제 다시" reminder (epoch ms), null = 없음
+}
+
 /** A lightweight event for the month calendar / record views. */
 export interface CalendarEvent {
   id: string;
@@ -74,4 +84,4 @@ export interface Settings {
   rowHeight: number; // grid row height px (24–40)
 }
 
-export type ViewName = "planner" | "calendar" | "record";
+export type ViewName = "planner" | "calendar" | "record" | "memo";

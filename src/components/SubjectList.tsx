@@ -7,6 +7,7 @@ export interface SubjectRow {
   pct: string; // e.g. "42%"
   timeColor: string;
   on: boolean;
+  recommended?: boolean; // 자투리 추천 — 가장 뒤처진 과목
 }
 
 interface Props {
@@ -28,8 +29,8 @@ export function SubjectList({ rows, onSelect }: Props) {
             gap: 12,
             width: "100%",
             textAlign: "left",
-            border: `1px solid ${s.on ? "rgba(0,0,0,.12)" : "rgba(0,0,0,.05)"}`,
-            background: s.on ? "#f4f2ec" : "#fff",
+            border: `1px solid ${s.recommended ? "rgba(210,140,40,.5)" : s.on ? "rgba(0,0,0,.12)" : "rgba(0,0,0,.05)"}`,
+            background: s.recommended ? "#fdfaf2" : s.on ? "#f4f2ec" : "#fff",
             borderRadius: 13,
             padding: "11px 13px",
             cursor: "pointer",
@@ -37,17 +38,35 @@ export function SubjectList({ rows, onSelect }: Props) {
         >
           <span style={{ width: 6, height: 38, flex: "none", borderRadius: 4, background: s.solid }} />
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div
-              style={{
-                fontSize: 14,
-                fontWeight: 600,
-                color: "#3a382f",
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-              }}
-            >
-              {s.name}
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <span
+                style={{
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: "#3a382f",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {s.name}
+              </span>
+              {s.recommended && (
+                <span
+                  style={{
+                    flex: "none",
+                    fontSize: 10.5,
+                    fontWeight: 700,
+                    color: "#b9791a",
+                    background: "#faefd6",
+                    borderRadius: 6,
+                    padding: "2px 6px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  지금 추천 ⚡
+                </span>
+              )}
             </div>
             <div style={{ height: 4, borderRadius: 3, background: "#eeece5", marginTop: 7, overflow: "hidden" }}>
               <div style={{ height: "100%", width: s.pct, background: s.solid, borderRadius: 3 }} />

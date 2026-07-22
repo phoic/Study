@@ -27,9 +27,11 @@ export function DayGrid({ plannedCells, actualCells, startHour, rowHeight, nowSe
           alignItems: "flex-start",
           justifyContent: "flex-end",
           gap: 3,
-          paddingRight: 8,
+          paddingLeft: 4,
+          paddingRight: 6,
           paddingTop: 2,
           borderRight: "1px solid rgba(0,0,0,.08)",
+          whiteSpace: "nowrap",
         }}
       >
         <span style={{ fontSize: 9, color: "#c4c1b8", fontWeight: 600, marginTop: 1 }}>{hour % 12 === 0 ? ap : ""}</span>
@@ -75,7 +77,7 @@ export function DayGrid({ plannedCells, actualCells, startHour, rowHeight, nowSe
         key={r}
         style={{
           display: "grid",
-          gridTemplateColumns: "42px repeat(6,1fr)",
+          gridTemplateColumns: "48px repeat(6,1fr)",
           height: rowHeight,
           borderTop: hour === startHour ? "1px solid rgba(0,0,0,.08)" : "none",
         }}
@@ -94,7 +96,7 @@ export function DayGrid({ plannedCells, actualCells, startHour, rowHeight, nowSe
       <div
         style={{
           position: "absolute",
-          left: 42,
+          left: 48,
           right: 0,
           top,
           height: 0,

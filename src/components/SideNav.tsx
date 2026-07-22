@@ -37,6 +37,16 @@ const items: Array<{ view: ViewName; label: string; icon: React.ReactNode }> = [
       </svg>
     ),
   },
+  {
+    view: "memo",
+    label: "메모",
+    icon: (
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M6 3h9l4 4v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" />
+        <path d="M14 3v5h5M9 13h6M9 17h4" />
+      </svg>
+    ),
+  },
 ];
 
 export function SideNav({ view, onChange }: Props) {

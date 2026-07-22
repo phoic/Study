@@ -13,6 +13,7 @@ export interface Env {
 }
 
 const SESSIONS_KEY = "log";
+const NOTES_KEY = "notes";
 
 const pad2 = (n: number) => String(n).padStart(2, "0");
 
@@ -302,6 +303,20 @@ export default {
         const sessions = Array.isArray(body.sessions) ? body.sessions : [];
         await env.SESSIONS.put(SESSIONS_KEY, JSON.stringify(sessions));
         return json({ ok: true, count: sessions.length }, env);
+      }
+
+      // Durable re-solve notes (KV) — same store as sessions, different key.
+      if (url.pathname === "/api/notes" && req.method === "GET") {
+        if (!env.SESSIONS) return json({ notes: [], stored: false }, env);
+        const raw = await env.SESSIONS.get(NOTES_KEY);
+        return json({ notes: raw ? JSON.parse(raw) : [], stored: true }, env);
+      }
+      if (url.pathname === "/api/notes" && req.method === "POST") {
+        if (!env.SESSIONS) return json({ ok: false, error: "KV not configured" }, env);
+        const body = (await req.json()) as { notes?: unknown[] };
+        const notes = Array.isArray(body.notes) ? body.notes : [];
+        await env.SESSIONS.put(NOTES_KEY, JSON.stringify(notes));
+        return json({ ok: true, count: notes.length }, env);
       }
 
       if (url.pathname === "/api/todo" && req.method === "POST") {

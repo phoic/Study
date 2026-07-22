@@ -14,6 +14,7 @@ token server-side and normalizes rows into the shape the app expects.
 | `GET` | `/api/goals` | Per-subject total planned hours (timed durations + all-day 예상시간(h)) |
 | `POST` | `/api/todo` | Sync a plan row's 완료 checkbox — body `{ "pageId": "…", "done": true }` |
 | `GET`/`POST` | `/api/sessions` | Durable cross-device study-session log (needs the KV binding below) |
+| `GET`/`POST` | `/api/notes` | Durable cross-device 재풀이 메모 (same KV, key `"notes"`) |
 
 `GET /api/schedule` returns:
 

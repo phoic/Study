@@ -1,4 +1,4 @@
-import type { AllDayItem, CalendarEvent, DaySchedule, Session, TimedBlock } from "../types";
+import type { AllDayItem, CalendarEvent, DaySchedule, ReviewNote, Session, TimedBlock } from "../types";
 import { mockDay, mockMonth } from "./mockSchedule";
 import { subjectIdByName } from "./subjects";
 
@@ -33,6 +33,9 @@ export interface DataSource {
   /** Durable study-session log (cross-device). Empty in local mode. */
   getSessions(): Promise<Session[]>;
   putSessions(sessions: Session[]): Promise<void>;
+  /** Durable re-solve notes (cross-device). Empty in local mode. */
+  getNotes(): Promise<ReviewNote[]>;
+  putNotes(notes: ReviewNote[]): Promise<void>;
 }
 
 class LocalDataSource implements DataSource {
@@ -56,6 +59,12 @@ class LocalDataSource implements DataSource {
     return []; // local mode: the log lives only in localStorage
   }
   async putSessions() {
+    // Local mode: nothing to back up to.
+  }
+  async getNotes(): Promise<ReviewNote[]> {
+    return []; // local mode: notes live only in localStorage
+  }
+  async putNotes() {
     // Local mode: nothing to back up to.
   }
 }
@@ -134,6 +143,18 @@ class NotionDataSource implements DataSource {
       body: JSON.stringify({ sessions }),
     });
     if (!res.ok) throw new Error(`proxy /api/sessions → ${res.status}`);
+  }
+  async getNotes(): Promise<ReviewNote[]> {
+    const r = await this.get<{ notes: ReviewNote[] }>(`/api/notes`);
+    return Array.isArray(r.notes) ? r.notes : [];
+  }
+  async putNotes(notes: ReviewNote[]) {
+    const res = await fetch(`${this.base}/api/notes`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ notes }),
+    });
+    if (!res.ok) throw new Error(`proxy /api/notes → ${res.status}`);
   }
 }
 

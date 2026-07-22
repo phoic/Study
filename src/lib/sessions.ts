@@ -45,6 +45,20 @@ export function totalSecForDay(secBySubject: Record<number, number>): number {
   return Object.values(secBySubject).reduce((a, b) => a + b, 0);
 }
 
+/** All-time cumulative seconds per subject (every session + optional live). */
+export function cumulativeSecBySubject(
+  sessions: Session[],
+  live?: LiveSegment,
+  now = Date.now(),
+): Record<number, number> {
+  const ms: Record<number, number> = {};
+  for (const s of sessions) ms[s.subjectId] = (ms[s.subjectId] ?? 0) + (s.endTs - s.startTs);
+  if (live) ms[live.subjectId] = (ms[live.subjectId] ?? 0) + Math.max(0, now - live.startTs);
+  const out: Record<number, number> = {};
+  for (const k of Object.keys(ms)) out[+k] = Math.floor(ms[+k] / 1000);
+  return out;
+}
+
 export interface ActualCell {
   subjectId: number;
   frac: number; // 0–1 fill of the 10-min cell

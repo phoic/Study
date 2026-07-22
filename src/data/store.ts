@@ -1,4 +1,4 @@
-import type { Session, Settings, TimerState } from "../types";
+import type { ReviewNote, Session, Settings, TimerState } from "../types";
 
 // Thin, defensive localStorage wrappers. All app state that must survive a
 // reload / screen-lock lives here (doc §4-1, §7).
@@ -6,6 +6,7 @@ import type { Session, Settings, TimerState } from "../types";
 const K = {
   timer: "st.timer.v1",
   sessions: "st.sessions.v1",
+  notes: "st.notes.v1",
   todos: "st.todos.v1",
   settings: "st.settings.v1",
 } as const;
@@ -41,6 +42,9 @@ export const saveTimer = (t: TimerState) => write(K.timer, t);
 
 export const loadSessions = () => read<Session[]>(K.sessions, []);
 export const saveSessions = (s: Session[]) => write(K.sessions, s);
+
+export const loadNotes = () => read<ReviewNote[]>(K.notes, []);
+export const saveNotes = (n: ReviewNote[]) => write(K.notes, n);
 
 export const loadTodos = () => read<Record<string, boolean>>(K.todos, {});
 export const saveTodos = (t: Record<string, boolean>) => write(K.todos, t);

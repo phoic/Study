@@ -1,4 +1,4 @@
-export type MobileTab = "timer" | "timeline" | "calendar" | "record";
+export type MobileTab = "timer" | "timeline" | "calendar" | "record" | "memo";
 
 interface Props {
   tab: MobileTab;
@@ -48,6 +48,16 @@ const items: Array<{ tab: MobileTab; label: string; icon: React.ReactNode }> = [
       </svg>
     ),
   },
+  {
+    tab: "memo",
+    label: "메모",
+    icon: (
+      <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M6 3h9l4 4v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z" />
+        <path d="M14 3v5h5M9 13h6M9 17h4" />
+      </svg>
+    ),
+  },
 ];
 
 export function MobileTabBar({ tab, onChange }: Props) {
@@ -60,7 +70,7 @@ export function MobileTabBar({ tab, onChange }: Props) {
         backdropFilter: "blur(12px)",
         borderTop: "1px solid rgba(0,0,0,.07)",
         display: "grid",
-        gridTemplateColumns: "repeat(4,1fr)",
+        gridTemplateColumns: "repeat(5,1fr)",
         padding: "8px 8px calc(8px + env(safe-area-inset-bottom))",
       }}
     >
