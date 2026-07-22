@@ -29,14 +29,19 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - name: Build (base = /<repo>/)
+      - name: Build
         run: npm run build
         env:
-          VITE_BASE: /${{ github.event.repository.name }}/
+          # Custom domain serves at the root ("/"); the github.io project site
+          # serves under "/<repo>/". Set repo variable CUSTOM_DOMAIN to switch.
+          VITE_BASE: ${{ vars.CUSTOM_DOMAIN != '' && '/' || format('/{0}/', github.event.repository.name) }}
           # Set repo variable VITE_API_BASE (Settings → Secrets and variables →
           # Actions → Variables) to your Worker URL to connect Notion. Empty =
           # offline mock data.
           VITE_API_BASE: ${{ vars.VITE_API_BASE }}
+      - name: Add CNAME for custom domain
+        if: vars.CUSTOM_DOMAIN != ''
+        run: echo "${{ vars.CUSTOM_DOMAIN }}" > dist/CNAME
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
