@@ -1,0 +1,40 @@
+name: Deploy proxy (Cloudflare Worker)
+
+# Deploys the Notion proxy Worker whenever proxy/** changes. Requires one repo
+# secret: CLOUDFLARE_API_TOKEN (Settings → Secrets and variables → Actions →
+# New repository secret). Create the token at
+# https://dash.cloudflare.com/profile/api-tokens using the
+# "Edit Cloudflare Workers" template (it includes Workers Scripts + Workers KV).
+#
+# The NOTION_TOKEN secret lives on the Worker itself (set once with
+# `wrangler secret put NOTION_TOKEN`) and persists across deploys — CI does not
+# touch it. KV bindings, however, come from proxy/wrangler.toml, so that file
+# must carry the real namespace id or a deploy would drop the binding.
+on:
+  push:
+    branches:
+      - main
+      - master
+      - claude/study-timer-implementation-q8jqn4
+    paths:
+      - "proxy/**"
+      - ".github/workflows/deploy-proxy.yml"
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: proxy/package-lock.json
+      - run: npm ci
+        working-directory: proxy
+      - name: Deploy to Cloudflare
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          workingDirectory: proxy

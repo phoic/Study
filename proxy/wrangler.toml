@@ -16,9 +16,9 @@ ALLOW_ORIGIN = "*"
 # Property the timer writes actual minutes into (added to the DB, decision #5).
 ACTUAL_PROP = "실제시간(분)"
 
-# Durable, cross-device study-session log. Create the namespace once:
+# Durable, cross-device study-session log + 재풀이 메모 (same namespace, keys
+# "log" and "notes"). Namespace was created with:
 #   npx wrangler kv namespace create SESSIONS
-# then paste the printed id below and uncomment this block, and redeploy.
-# [[kv_namespaces]]
-# binding = "SESSIONS"
-# id = "PASTE_KV_NAMESPACE_ID_HERE"
+[[kv_namespaces]]
+binding = "SESSIONS"
+id = "8819739e5fae44cd83e6195e9458a480"
