@@ -18,8 +18,8 @@ export default defineConfig({
         short_name: "공부타이머",
         description: "열품타 스타일 공부 타이머 · 노션 연동",
         lang: "ko",
-        theme_color: "#faf9f6",
-        background_color: "#e9e7e1",
+        theme_color: "#eef1fb",
+        background_color: "#eef1fb",
         display: "standalone",
         orientation: "any",
         icons: [

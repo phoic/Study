@@ -1,4 +1,5 @@
 import type { ViewName } from "../types";
+import { INK, logoMark, navActive, navIdle, navPane } from "../lib/glass";
 
 interface Props {
   view: ViewName;
@@ -53,10 +54,12 @@ export function SideNav({ view, onChange }: Props) {
   return (
     <nav
       style={{
-        width: 78,
+        position: "relative",
+        zIndex: 1,
+        width: 80,
         flex: "none",
-        background: "#f2f0ea",
-        borderRight: "1px solid rgba(0,0,0,.06)",
+        ...navPane,
+        borderRight: "1px solid rgba(255,255,255,.45)",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -65,10 +68,10 @@ export function SideNav({ view, onChange }: Props) {
     >
       <div
         style={{
-          width: 34,
-          height: 34,
-          borderRadius: 11,
-          background: "#2b2a27",
+          width: 38,
+          height: 38,
+          borderRadius: 13,
+          ...logoMark,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -77,9 +80,9 @@ export function SideNav({ view, onChange }: Props) {
       >
         <div
           style={{
-            width: 13,
-            height: 13,
-            border: "2.4px solid #faf9f6",
+            width: 14,
+            height: 14,
+            border: "2.4px solid #fff",
             borderRadius: "50%",
             borderRightColor: "transparent",
             transform: "rotate(-40deg)",
@@ -95,12 +98,10 @@ export function SideNav({ view, onChange }: Props) {
             onClick={() => onChange(it.view)}
             className="hoverable"
             style={{
-              width: 56,
-              height: 58,
-              border: 0,
-              background: on ? "#2b2a27" : "transparent",
-              color: on ? "#faf9f6" : "#9a978f",
-              borderRadius: 15,
+              width: 58,
+              height: 60,
+              ...(on ? navActive : navIdle),
+              borderRadius: 17,
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
@@ -119,14 +120,18 @@ export function SideNav({ view, onChange }: Props) {
       <div style={{ flex: 1 }} />
       <div
         style={{
-          width: 36,
-          height: 36,
+          width: 38,
+          height: 38,
           borderRadius: "50%",
-          background: "#e2ded3",
+          background: "rgba(255,255,255,.5)",
+          border: "1px solid rgba(255,255,255,.7)",
+          boxShadow: "inset 0 1px 0 rgba(255,255,255,.85)",
+          backdropFilter: "blur(14px)",
+          WebkitBackdropFilter: "blur(14px)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          color: "#8a8880",
+          color: INK.muted,
           fontWeight: 700,
           fontSize: 13,
         }}

@@ -1,5 +1,5 @@
 import type { Subject, SubjectResolved } from "../types";
-import { solidOf, tintOf } from "../lib/colors";
+import { barOf, plannedOf, solidOf, tintOf } from "../lib/colors";
 
 // The 9 subjects — names and colors mirror the Notion `과목` Select options
 // exactly, so schedule rows match by name. Ported from 공부 타이머.dc.html.
@@ -13,13 +13,32 @@ export const SUBJECTS: Subject[] = [
   { id: 4, name: "물질과 에너지", hue: 55, goalH: 25, doneH: 0, dm: 90 },
   { id: 5, name: "영어", hue: 150, goalH: 35, doneH: 0, dm: 80 },
   { id: 6, name: "문학", hue: 95, goalH: 20, doneH: 0, dm: 60 },
-  { id: 7, name: "독서", hue: 60, goalH: 15, doneH: 0, dm: 60, solid: "oklch(0.5 0.07 60)", tint: "oklch(0.9 0.032 60)" },
-  { id: 8, name: "점검·보충", hue: 265, goalH: 10, doneH: 0, dm: 40, solid: "oklch(0.62 0.015 265)", tint: "oklch(0.93 0.008 265)" },
+  // 독서 sits next to 물질과 에너지 (hue 55), so it keeps a darker fill to stay
+  // tellable apart; 점검·보충 stays near-neutral. Both are lifted into the glass
+  // lightness range so they don't read as ink blots on the frosted panes.
+  {
+    id: 7, name: "독서", hue: 60, goalH: 15, doneH: 0, dm: 60,
+    solid: "oklch(0.58 0.075 60)", tint: "oklch(0.91 0.03 60)",
+    bar: "linear-gradient(160deg, oklch(0.62 0.085 60 / .88), oklch(0.5 0.08 60 / .68))",
+    planned: "oklch(0.88 0.045 60 / .32)",
+  },
+  {
+    id: 8, name: "점검·보충", hue: 265, goalH: 10, doneH: 0, dm: 40,
+    solid: "oklch(0.7 0.02 265)", tint: "oklch(0.94 0.008 265)",
+    bar: "linear-gradient(160deg, oklch(0.72 0.025 265 / .85), oklch(0.6 0.025 265 / .62))",
+    planned: "oklch(0.91 0.012 265 / .32)",
+  },
   { id: 9, name: "학원", hue: 350, goalH: 12, doneH: 0, dm: 60 },
 ];
 
 export function resolveSubject(s: Subject): SubjectResolved {
-  return { ...s, solid: s.solid ?? solidOf(s.hue), tint: s.tint ?? tintOf(s.hue) };
+  return {
+    ...s,
+    solid: s.solid ?? solidOf(s.hue),
+    tint: s.tint ?? tintOf(s.hue),
+    bar: s.bar ?? barOf(s.hue),
+    planned: s.planned ?? plannedOf(s.hue),
+  };
 }
 
 const byId = new Map(SUBJECTS.map((s) => [s.id, s]));

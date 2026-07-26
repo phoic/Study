@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import type { ReviewNote } from "../types";
 import { SUBJECTS, subById } from "../data/subjects";
+import { INK, cardSoft, chip as glassChip } from "../lib/glass";
 
 interface Props {
   notes: ReviewNote[];
@@ -71,9 +72,9 @@ export function MemoView({ notes, selectedId, onAdd, onToggle, onDelete, stacked
         onClick={() => setDraftSubject(id)}
         className="hoverable"
         style={{
-          border: `1px solid ${on ? s.solid : "rgba(0,0,0,.1)"}`,
-          background: on ? s.solid : "#fff",
-          color: on ? "#fff" : "#57544d",
+          border: `1px solid ${on ? s.solid : "rgba(255,255,255,.6)"}`,
+          background: on ? s.solid : "rgba(255,255,255,.5)",
+          color: on ? "#fff" : INK.muted,
           borderRadius: 999,
           padding: "5px 11px",
           fontSize: 12.5,
@@ -88,17 +89,15 @@ export function MemoView({ notes, selectedId, onAdd, onToggle, onDelete, stacked
   };
 
   const card: React.CSSProperties = {
-    background: "#fff",
-    border: "1px solid rgba(0,0,0,.06)",
-    borderRadius: 16,
+    ...cardSoft,
+    borderRadius: 18,
     padding: stacked ? "14px 15px" : "18px 20px",
-    boxShadow: "0 1px 2px rgba(0,0,0,.03)",
   };
 
   const noteItem = (n: ReviewNote) => {
     const s = subById(n.subjectId)!;
     return (
-      <div key={n.id} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "9px 0", borderTop: "1px solid rgba(0,0,0,.05)" }}>
+      <div key={n.id} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "9px 0", borderTop: "1px solid rgba(90,80,110,.1)" }}>
         <button
           onClick={() => onToggle(n.id)}
           className="hoverable"
@@ -109,8 +108,8 @@ export function MemoView({ notes, selectedId, onAdd, onToggle, onDelete, stacked
             height: 22,
             marginTop: 1,
             borderRadius: 7,
-            border: `1.6px solid ${n.done ? s.solid : "rgba(0,0,0,.18)"}`,
-            background: n.done ? s.solid : "#fff",
+            border: `1.6px solid ${n.done ? s.solid : "rgba(90,80,110,.28)"}`,
+            background: n.done ? s.solid : "rgba(255,255,255,.6)",
             color: "#fff",
             cursor: "pointer",
             display: "flex",
@@ -160,7 +159,7 @@ export function MemoView({ notes, selectedId, onAdd, onToggle, onDelete, stacked
       {!stacked && (
         <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 20 }}>
           <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: "-.02em" }}>재풀이 메모</div>
-          <div style={{ fontSize: 12.5, color: "#a8a59d", fontWeight: 600, background: "#f2f0ea", padding: "5px 11px", borderRadius: 8 }}>다시 풀 문제</div>
+          <div style={{ fontSize: 12.5, color: INK.muted, fontWeight: 600, ...glassChip, padding: "5px 11px", borderRadius: 9 }}>다시 풀 문제</div>
         </div>
       )}
 
@@ -176,19 +175,19 @@ export function MemoView({ notes, selectedId, onAdd, onToggle, onDelete, stacked
             style={{
               flex: 1,
               minWidth: 0,
-              border: "1px solid rgba(0,0,0,.12)",
+              border: "1px solid rgba(255,255,255,.7)",
               borderRadius: 11,
               padding: "10px 12px",
               fontSize: 14,
-              background: "#faf9f6",
-              color: "#2b2a27",
+              background: "rgba(255,255,255,.55)",
+              color: INK.strong,
               outline: "none",
             }}
           />
           <button
             onClick={submit}
             className="hoverable"
-            style={{ flex: "none", border: 0, borderRadius: 11, background: "#2b2a27", color: "#faf9f6", fontSize: 14, fontWeight: 700, padding: "0 18px", cursor: "pointer" }}
+            style={{ flex: "none", border: 0, borderRadius: 11, background: "linear-gradient(160deg,oklch(0.72 0.14 285/.95),oklch(0.66 0.13 250/.95))", color: "#fff", fontSize: 14, fontWeight: 700, padding: "0 18px", cursor: "pointer", boxShadow: "0 6px 16px -8px oklch(0.6 0.15 280/.7)" }}
           >
             추가
           </button>
@@ -203,9 +202,9 @@ export function MemoView({ notes, selectedId, onAdd, onToggle, onDelete, stacked
                 onClick={() => setDraftDue(o.days)}
                 className="hoverable"
                 style={{
-                  border: `1px solid ${on ? "rgba(0,0,0,.35)" : "rgba(0,0,0,.1)"}`,
-                  background: on ? "#2b2a27" : "#fff",
-                  color: on ? "#faf9f6" : "#8a8880",
+                  border: `1px solid ${on ? "rgba(90,80,110,.5)" : "rgba(255,255,255,.6)"}`,
+                  background: on ? "rgba(74,70,86,.92)" : "rgba(255,255,255,.5)",
+                  color: on ? "#fff" : INK.faint,
                   borderRadius: 999,
                   padding: "4px 10px",
                   fontSize: 12,
@@ -222,7 +221,7 @@ export function MemoView({ notes, selectedId, onAdd, onToggle, onDelete, stacked
 
       {/* 오늘 복습 대기 */}
       {dueList.length > 0 && (
-        <div style={{ ...card, borderColor: "rgba(192,57,43,.25)", background: "#fdf6f5" }}>
+        <div style={{ ...card, border: "1px solid rgba(192,57,43,.3)", background: "linear-gradient(160deg,rgba(255,244,242,.8),rgba(255,238,236,.5))" }}>
           <div style={{ fontSize: 12.5, fontWeight: 700, color: "#c0392b", marginBottom: 4 }}>오늘 복습 대기 · {dueList.length}</div>
           {dueList.map(noteItem)}
         </div>
@@ -241,9 +240,9 @@ export function MemoView({ notes, selectedId, onAdd, onToggle, onDelete, stacked
               onClick={() => setOnlyPending(f.v)}
               className="hoverable"
               style={{
-                border: `1px solid ${on ? "rgba(0,0,0,.2)" : "rgba(0,0,0,.08)"}`,
-                background: on ? "#f2f0ea" : "transparent",
-                color: on ? "#3a382f" : "#a8a59d",
+                border: `1px solid ${on ? "rgba(255,255,255,.75)" : "rgba(255,255,255,.4)"}`,
+                background: on ? "rgba(255,255,255,.6)" : "transparent",
+                color: on ? "#4a4656" : INK.faint,
                 borderRadius: 9,
                 padding: "6px 14px",
                 fontSize: 12.5,

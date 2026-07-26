@@ -1,0 +1,96 @@
+<!doctype html>
+<!--
+  Source of truth for the app icon (ported from 앱 아이콘.dc.html).
+
+  It is rendered to PNG at each launcher size by tools/gen-icons.mjs — run
+  `node tools/gen-icons.mjs` after editing this file and commit the PNGs.
+  `?size=N` sets the icon box; `?maskable=1` insets the glyph so it survives
+  Android's circular safe-zone crop.
+-->
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; background: transparent; }
+      body { display: flex; align-items: center; justify-content: center; }
+      #icon {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        background: linear-gradient(
+          150deg,
+          oklch(0.82 0.13 200) 0%,
+          oklch(0.76 0.14 262) 40%,
+          oklch(0.72 0.15 320) 68%,
+          oklch(0.8 0.14 30) 100%
+        );
+      }
+      /* multicolor light blobs */
+      .blob { position: absolute; border-radius: 50%; }
+      .blob-a { background: radial-gradient(circle, oklch(0.82 0.15 200/.85), transparent 68%); }
+      .blob-b { background: radial-gradient(circle, oklch(0.82 0.15 30/.7), transparent 68%); }
+      /* glass highlight sweep */
+      .gloss {
+        position: absolute;
+        background: radial-gradient(120% 90% at 30% 0%, rgba(255,255,255,.75), rgba(255,255,255,0) 60%);
+        border-radius: 50%;
+      }
+      .rim { position: absolute; inset: 0; }
+    </style>
+  </head>
+  <body>
+    <div id="icon">
+      <div class="blob blob-a"></div>
+      <div class="blob blob-b"></div>
+      <div class="gloss"></div>
+      <div class="rim"></div>
+      <svg id="glyph" viewBox="0 0 164 164" fill="none" style="position: relative">
+        <circle cx="82" cy="82" r="62" stroke="rgba(255,255,255,.28)" stroke-width="13" />
+        <circle
+          cx="82" cy="82" r="62" stroke="#fff" stroke-width="13" stroke-linecap="round"
+          stroke-dasharray="389.6" stroke-dashoffset="117" transform="rotate(-90 82 82)"
+        />
+        <circle cx="82" cy="20" r="8.5" fill="#fff" />
+      </svg>
+    </div>
+
+    <script>
+      const q = new URLSearchParams(location.search);
+      const size = Number(q.get("size") || 512);
+      const maskable = q.get("maskable") === "1";
+
+      // Proportions taken from the 300px design: 68px radius, 164px glyph.
+      const R = size * (68 / 300);
+      const G = size * (164 / 300) * (maskable ? 0.72 : 1); // shrink inside the safe zone
+
+      const icon = document.getElementById("icon");
+      icon.style.width = size + "px";
+      icon.style.height = size + "px";
+      // A maskable icon is cropped to a circle by the launcher, so it must bleed
+      // to the edges instead of carrying its own rounded corners.
+      icon.style.borderRadius = maskable ? "0" : R + "px";
+
+      const glyph = document.getElementById("glyph");
+      glyph.setAttribute("width", G);
+      glyph.setAttribute("height", G);
+      glyph.style.filter = `drop-shadow(0 ${size * 0.02}px ${size * 0.033}px rgba(20,0,50,.35))`;
+
+      const s = (v) => size * (v / 300);
+      const a = document.querySelector(".blob-a");
+      a.style.cssText += `width:${s(200)}px;height:${s(200)}px;left:${s(-40)}px;bottom:${s(-50)}px;filter:blur(${s(6)}px)`;
+      const b = document.querySelector(".blob-b");
+      b.style.cssText += `width:${s(200)}px;height:${s(200)}px;right:${s(-40)}px;top:${s(-40)}px;filter:blur(${s(6)}px)`;
+      const gl = document.querySelector(".gloss");
+      gl.style.cssText += `top:${s(-40)}px;left:${s(-30)}px;right:${s(-30)}px;height:${s(200)}px`;
+      const rim = document.querySelector(".rim");
+      rim.style.cssText += `border-radius:${maskable ? 0 : R}px;border:${Math.max(1, s(1.5))}px solid rgba(255,255,255,.35)`;
+
+      document.body.style.width = size + "px";
+      document.body.style.height = size + "px";
+      document.documentElement.dataset.ready = "1";
+    </script>
+  </body>
+</html>

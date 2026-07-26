@@ -1,6 +1,7 @@
 import type { CalendarEvent } from "../types";
 import { subById } from "../data/subjects";
 import { weekdayOfKey } from "../lib/time";
+import { INK, frost } from "../lib/glass";
 
 interface Props {
   ym: string;
@@ -11,7 +12,7 @@ interface Props {
 }
 
 const wd = ["일", "월", "화", "수", "목", "금", "토"];
-const wcol = (i: number) => (i === 0 ? "oklch(0.6 0.16 25)" : i === 6 ? "oklch(0.55 0.11 250)" : "#8a8880");
+const wcol = (i: number) => (i === 0 ? "oklch(0.6 0.16 25)" : i === 6 ? "oklch(0.55 0.11 250)" : INK.faint);
 const pad2 = (n: number) => String(n).padStart(2, "0");
 
 // Compact month grid for phones (ported from the mobile prototype): day number +
@@ -31,7 +32,7 @@ export function MobileCalendar({ ym, eventsByDay, todayKey, accent, onSelectDay 
     const wday = weekdayOfKey(dateKey);
     const weekend = wday === 0 || wday === 6;
     const dots = events.slice(0, 3).map((e, k) => (
-      <span key={k} style={{ width: 5, height: 5, borderRadius: "50%", background: subById(e.subjectId)?.solid ?? "#c4c1b8" }} />
+      <span key={k} style={{ width: 5, height: 5, borderRadius: "50%", background: subById(e.subjectId)?.solid ?? INK.hint }} />
     ));
     cells.push(
       <div
@@ -39,15 +40,16 @@ export function MobileCalendar({ ym, eventsByDay, todayKey, accent, onSelectDay 
         onClick={active ? () => onSelectDay(dateKey) : undefined}
         style={{
           aspectRatio: "1 / 1.15",
-          background: active ? (weekend ? "#f7f5f0" : "#fff") : "#fbfaf7",
-          border: `1px solid rgba(0,0,0,.07)`,
-          borderRadius: 12,
+          background: active ? (weekend ? "rgba(255,255,255,.34)" : "rgba(255,255,255,.55)") : "rgba(255,255,255,.16)",
+          ...(active ? frost(14, 150) : {}),
+          border: "1px solid rgba(255,255,255,.55)",
+          borderRadius: 13,
           padding: "5px 0 6px",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "space-between",
-          opacity: active ? 1 : 0.4,
+          opacity: active ? 1 : 0.42,
           cursor: active ? "pointer" : "default",
         }}
       >

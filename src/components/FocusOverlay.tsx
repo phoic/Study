@@ -1,4 +1,6 @@
 import type { SubjectResolved } from "../types";
+import { APP_BG, INK, control, frost } from "../lib/glass";
+import { GlassBackdrop } from "./GlassBackdrop";
 
 interface Props {
   subject: SubjectResolved;
@@ -19,7 +21,7 @@ export function FocusOverlay({ subject, elapsedStr, running, onToggle, onExit, o
         position: "fixed",
         inset: 0,
         zIndex: 100,
-        background: subject.tint,
+        background: APP_BG,
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -27,6 +29,8 @@ export function FocusOverlay({ subject, elapsedStr, running, onToggle, onExit, o
         padding: "max(24px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom))",
       }}
     >
+      <GlassBackdrop />
+
       {/* 나가기 (좌상단) */}
       <button
         onClick={onExit}
@@ -34,14 +38,13 @@ export function FocusOverlay({ subject, elapsedStr, running, onToggle, onExit, o
         aria-label="집중 모드 나가기"
         style={{
           position: "absolute",
+          zIndex: 1,
           top: "max(18px, env(safe-area-inset-top))",
           left: 18,
           width: 42,
           height: 42,
-          border: "1px solid rgba(0,0,0,.1)",
+          ...control,
           borderRadius: 13,
-          background: "rgba(255,255,255,.7)",
-          color: "#57544d",
           cursor: "pointer",
           display: "flex",
           alignItems: "center",
@@ -53,43 +56,49 @@ export function FocusOverlay({ subject, elapsedStr, running, onToggle, onExit, o
         </svg>
       </button>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+      <div style={{ position: "relative", zIndex: 1, display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
         <span style={{ width: 13, height: 13, borderRadius: 4, background: subject.solid }} />
-        <span style={{ fontSize: 19, fontWeight: 700, color: "#3a382f" }}>{subject.name}</span>
+        <span style={{ fontSize: 19, fontWeight: 700, color: INK.body }}>{subject.name}</span>
       </div>
 
       <div
         className="tnum"
         style={{
+          position: "relative",
+          zIndex: 1,
           fontSize: "min(19vw, 128px)",
           fontWeight: 800,
           letterSpacing: "-.03em",
           lineHeight: 1,
-          color: running ? "#2b2a27" : "#8f8c83",
+          color: running ? INK.strong : INK.faint,
           margin: "8px 0 4px",
+          textShadow: "0 2px 20px rgba(255,255,255,.6)",
         }}
       >
         {elapsedStr}
       </div>
-      <div style={{ fontSize: 13, color: "#7d7a72", fontWeight: 600, marginBottom: 40 }}>
+      <div style={{ position: "relative", zIndex: 1, fontSize: 13, color: INK.muted, fontWeight: 600, marginBottom: 40 }}>
         {running ? "기록 중 — 화면을 꺼도 이어집니다" : "일시정지됨"}
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
+      <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
         <button
           onClick={onToggle}
           className="hoverable"
           style={{
             width: 220,
             height: 60,
-            border: 0,
+            border: running ? "1px solid rgba(255,255,255,.7)" : 0,
             borderRadius: 17,
-            background: running ? "rgba(255,255,255,.85)" : subject.solid,
-            color: running ? "#57544d" : "#fff",
+            background: running ? "rgba(255,255,255,.62)" : subject.solid,
+            color: running ? INK.muted : "#fff",
             fontSize: 17,
             fontWeight: 700,
             cursor: "pointer",
-            boxShadow: running ? "none" : `0 8px 20px -8px ${subject.solid}`,
+            ...(running ? frost(16) : {}),
+            boxShadow: running
+              ? "inset 0 1px 0 rgba(255,255,255,.85)"
+              : `0 10px 24px -8px ${subject.solid}`,
           }}
         >
           {running ? "일시정지" : "이어서 시작"}
@@ -100,7 +109,7 @@ export function FocusOverlay({ subject, elapsedStr, running, onToggle, onExit, o
           style={{
             border: 0,
             background: "transparent",
-            color: "#8a8880",
+            color: INK.faint,
             fontSize: 13.5,
             fontWeight: 600,
             cursor: "pointer",

@@ -1,6 +1,7 @@
 import type { CalendarEvent } from "../types";
 import { subById } from "../data/subjects";
 import { weekdayOfKey } from "../lib/time";
+import { INK, frost } from "../lib/glass";
 
 interface Props {
   ym: string; // YYYY-MM
@@ -12,7 +13,7 @@ interface Props {
 }
 
 const wd = ["일", "월", "화", "수", "목", "금", "토"];
-const wcol = (i: number) => (i === 0 ? "oklch(0.6 0.16 25)" : i === 6 ? "oklch(0.55 0.11 250)" : "#8a8880");
+const wcol = (i: number) => (i === 0 ? "oklch(0.6 0.16 25)" : i === 6 ? "oklch(0.55 0.11 250)" : INK.faint);
 const pad2 = (n: number) => String(n).padStart(2, "0");
 
 // Ported from buildCalendar() (desktop): a month grid where each active day
@@ -47,7 +48,7 @@ export function CalendarMonth({ ym, eventsByDay, todayKey, selectedDay, accent, 
             alignItems: "center",
             gap: 6,
             borderLeft: `3px solid ${s?.solid ?? "#c4c1b8"}`,
-            background: s?.tint ?? "#f0eee7",
+            background: s?.tint ?? "rgba(90,80,110,.1)",
             borderRadius: 5,
             padding: "3px 7px",
           }}
@@ -87,15 +88,16 @@ export function CalendarMonth({ ym, eventsByDay, todayKey, selectedDay, accent, 
         key={d}
         onClick={active ? () => onSelectDay(dateKey) : undefined}
         style={{
-          background: active ? (weekend ? "#f7f5f0" : "#fff") : "#fbfaf7",
-          border: selected ? `2px solid ${accent}` : today ? `1.5px solid ${accent}` : "1px solid rgba(0,0,0,.07)",
-          boxShadow: selected ? `0 4px 14px -6px ${accent}` : "none",
-          borderRadius: 12,
+          background: active ? (weekend ? "rgba(255,255,255,.34)" : "rgba(255,255,255,.55)") : "rgba(255,255,255,.16)",
+          ...(active ? frost(14, 150) : {}),
+          border: selected ? `2px solid ${accent}` : today ? `1.5px solid ${accent}` : "1px solid rgba(255,255,255,.55)",
+          boxShadow: selected ? `0 6px 18px -6px ${accent}` : "none",
+          borderRadius: 13,
           padding: selected ? "7px 8px 8px" : "8px 9px 9px",
           display: "flex",
           flexDirection: "column",
           gap: 4,
-          opacity: active ? 1 : 0.4,
+          opacity: active ? 1 : 0.42,
           minHeight: 0,
           overflow: "hidden",
           cursor: active ? "pointer" : "default",

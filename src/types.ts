@@ -9,11 +9,15 @@ export interface Subject {
   dm: number; // daily goal, minutes
   solid?: string; // optional color override (독서, 점검·보충)
   tint?: string;
+  bar?: string; // actual-time gradient on the day grid
+  planned?: string; // planned-cell wash on the day grid
 }
 
 export interface SubjectResolved extends Subject {
   solid: string;
   tint: string;
+  bar: string;
+  planned: string;
 }
 
 /** A timed plan block — Notion row with 날짜.is_datetime = 1. */

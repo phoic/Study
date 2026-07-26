@@ -1,6 +1,7 @@
 import type { CalendarEvent } from "../types";
 import { subById } from "../data/subjects";
 import { weekdayName } from "../lib/time";
+import { INK, control, modalPane, scrim } from "../lib/glass";
 
 interface Props {
   dateKey: string;
@@ -25,8 +26,7 @@ export function DayDetailModal({ dateKey, events, isToday, accent, isDone, onTog
       style={{
         position: "absolute",
         inset: 0,
-        background: "rgba(40,38,34,.34)",
-        backdropFilter: "blur(3px)",
+        ...scrim,
         display: "flex",
         alignItems: sheet ? "flex-end" : "center",
         justifyContent: "center",
@@ -44,10 +44,8 @@ export function DayDetailModal({ dateKey, events, isToday, accent, isDone, onTog
             zIndex: 2,
             width: 30,
             height: 30,
-            border: 0,
+            ...control,
             borderRadius: 9,
-            background: "#f2f0ea",
-            color: "#8a8880",
             cursor: "pointer",
             display: "flex",
             alignItems: "center",
@@ -60,8 +58,8 @@ export function DayDetailModal({ dateKey, events, isToday, accent, isDone, onTog
           </svg>
         </button>
 
-        <div style={{ width: "100%", maxHeight: "100%", display: "flex", flexDirection: "column", background: "#fff", borderRadius: 18, boxShadow: "0 24px 60px -20px rgba(40,38,34,.45)", overflow: "hidden" }}>
-          <div style={{ padding: "18px 20px 14px", borderBottom: "1px solid rgba(0,0,0,.06)" }}>
+        <div style={{ width: "100%", maxHeight: "100%", display: "flex", flexDirection: "column", ...modalPane, borderRadius: 22, overflow: "hidden" }}>
+          <div style={{ padding: "18px 20px 14px", borderBottom: "1px solid rgba(255,255,255,.55)" }}>
             <div style={{ display: "flex", alignItems: "baseline", gap: 8, paddingRight: 34 }}>
               <span className="tnum" style={{ fontSize: 22, fontWeight: 800, letterSpacing: "-.02em" }}>
                 {mo}월 {d}일
@@ -79,8 +77,8 @@ export function DayDetailModal({ dateKey, events, isToday, accent, isDone, onTog
           </div>
 
           {events.length === 0 ? (
-            <div style={{ minHeight: 200, padding: 30, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "#c4c1b8", gap: 8 }}>
-              <div style={{ width: 40, height: 40, borderRadius: "50%", border: "2px dashed #d9d5ca" }} />
+            <div style={{ minHeight: 200, padding: 30, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: INK.hint, gap: 8 }}>
+              <div style={{ width: 40, height: 40, borderRadius: "50%", border: "2px dashed rgba(90,80,110,.25)" }} />
               <div style={{ fontSize: 13, fontWeight: 600 }}>계획된 일정이 없어요</div>
             </div>
           ) : (
@@ -99,9 +97,9 @@ export function DayDetailModal({ dateKey, events, isToday, accent, isDone, onTog
                       gap: 11,
                       width: "100%",
                       textAlign: "left",
-                      border: "1px solid rgba(0,0,0,.05)",
-                      background: done ? "#f6f4ef" : "#fff",
-                      borderRadius: 12,
+                      border: "1px solid rgba(255,255,255,.6)",
+                      background: done ? "rgba(255,255,255,.35)" : "rgba(255,255,255,.6)",
+                      borderRadius: 13,
                       padding: "11px 12px",
                       marginBottom: 7,
                       cursor: "pointer",
@@ -113,7 +111,7 @@ export function DayDetailModal({ dateKey, events, isToday, accent, isDone, onTog
                         height: 20,
                         flex: "none",
                         borderRadius: 7,
-                        border: done ? 0 : "2px solid #d5d1c7",
+                        border: done ? 0 : "2px solid rgba(90,80,110,.28)",
                         background: done ? color : "transparent",
                         display: "flex",
                         alignItems: "center",

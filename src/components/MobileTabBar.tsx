@@ -1,3 +1,5 @@
+import { INK, navPane } from "../lib/glass";
+
 export type MobileTab = "timer" | "timeline" | "calendar" | "record" | "memo";
 
 interface Props {
@@ -64,11 +66,12 @@ export function MobileTabBar({ tab, onChange }: Props) {
   return (
     <nav
       style={{
+        position: "relative",
+        zIndex: 1,
         flex: "none",
         height: 64,
-        background: "rgba(250,249,246,.92)",
-        backdropFilter: "blur(12px)",
-        borderTop: "1px solid rgba(0,0,0,.07)",
+        ...navPane,
+        borderTop: "1px solid rgba(255,255,255,.5)",
         display: "grid",
         gridTemplateColumns: "repeat(5,1fr)",
         padding: "8px 8px calc(8px + env(safe-area-inset-bottom))",
@@ -83,7 +86,7 @@ export function MobileTabBar({ tab, onChange }: Props) {
             style={{
               border: 0,
               background: "transparent",
-              color: on ? "#2b2a27" : "#b3b0a7",
+              color: on ? "#4a4656" : INK.hint,
               display: "flex",
               flexDirection: "column",
               alignItems: "center",

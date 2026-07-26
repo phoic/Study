@@ -1,4 +1,5 @@
 import type { SubjectResolved } from "../types";
+import { card, control } from "../lib/glass";
 
 interface Props {
   subject: SubjectResolved;
@@ -14,11 +15,10 @@ export function TimerCard({ subject, remainingStr, elapsedStr, running, onToggle
   return (
     <div
       style={{
-        background: "#fff",
-        border: "1px solid rgba(0,0,0,.06)",
-        borderRadius: 20,
+        position: "relative",
+        ...card,
+        borderRadius: 22,
         padding: "22px 22px 20px",
-        boxShadow: "0 1px 2px rgba(0,0,0,.03)",
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 14 }}>
@@ -73,10 +73,8 @@ export function TimerCard({ subject, remainingStr, elapsedStr, running, onToggle
             width: 52,
             height: 52,
             flex: "none",
-            border: "1px solid rgba(0,0,0,.1)",
-            borderRadius: 15,
-            background: "#fff",
-            color: "#8a8880",
+            ...control,
+            borderRadius: 16,
             cursor: "pointer",
             display: "flex",
             alignItems: "center",

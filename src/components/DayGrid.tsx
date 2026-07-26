@@ -1,6 +1,7 @@
 import type { ActualCell, PlannedCell } from "../lib/sessions";
 import { hourLabel } from "../lib/time";
 import { subById } from "../data/subjects";
+import { GRID_LINE, INK, gridPane } from "../lib/glass";
 
 interface Props {
   plannedCells: Map<number, PlannedCell>;
@@ -30,12 +31,12 @@ export function DayGrid({ plannedCells, actualCells, startHour, rowHeight, nowSe
           paddingLeft: 4,
           paddingRight: 6,
           paddingTop: 2,
-          borderRight: "1px solid rgba(0,0,0,.08)",
+          borderRight: GRID_LINE.label,
           whiteSpace: "nowrap",
         }}
       >
-        <span style={{ fontSize: 9, color: "#c4c1b8", fontWeight: 600, marginTop: 1 }}>{hour % 12 === 0 ? ap : ""}</span>
-        <span className="tnum" style={{ fontSize: 12, color: "#8a8880", fontWeight: 600 }}>
+        <span style={{ fontSize: 9, color: INK.hint, fontWeight: 600, marginTop: 1 }}>{hour % 12 === 0 ? ap : ""}</span>
+        <span className="tnum" style={{ fontSize: 12, color: INK.faint, fontWeight: 600 }}>
           {h12}
         </span>
       </div>,
@@ -44,15 +45,15 @@ export function DayGrid({ plannedCells, actualCells, startHour, rowHeight, nowSe
       const cellIdx = hour * 6 + c;
       const pl = plannedCells.get(cellIdx);
       const ac = actualCells.get(cellIdx);
-      const plTint = pl ? subById(pl.subjectId)?.tint ?? "transparent" : "transparent";
+      const plWash = pl ? subById(pl.subjectId)?.planned ?? "transparent" : "transparent";
       cells.push(
         <div
           key={c}
           style={{
             position: "relative",
-            borderRight: c === 5 ? "none" : "1px solid rgba(0,0,0,.045)",
-            borderBottom: "1px solid rgba(0,0,0,.05)",
-            background: plTint,
+            borderRight: c === 5 ? "none" : GRID_LINE.col,
+            borderBottom: GRID_LINE.rowB,
+            background: plWash,
           }}
         >
           {ac && (
@@ -63,8 +64,11 @@ export function DayGrid({ plannedCells, actualCells, startHour, rowHeight, nowSe
                 top: 2,
                 bottom: 2,
                 width: `calc(${ac.frac * 100}% - 1px)`,
-                background: subById(ac.subjectId)?.solid ?? "#999",
+                background: subById(ac.subjectId)?.bar ?? "rgba(140,130,160,.6)",
                 borderRadius: 3,
+                backdropFilter: "blur(6px)",
+                WebkitBackdropFilter: "blur(6px)",
+                boxShadow: "inset 0 1px 0 rgba(255,255,255,.5)",
                 animation: ac.live && running ? "livepulse 1.4s ease-in-out infinite" : "none",
               }}
             />
@@ -79,7 +83,7 @@ export function DayGrid({ plannedCells, actualCells, startHour, rowHeight, nowSe
           display: "grid",
           gridTemplateColumns: "48px repeat(6,1fr)",
           height: rowHeight,
-          borderTop: hour === startHour ? "1px solid rgba(0,0,0,.08)" : "none",
+          borderTop: hour === startHour ? GRID_LINE.label : "none",
         }}
       >
         {cells}
@@ -122,7 +126,7 @@ export function DayGrid({ plannedCells, actualCells, startHour, rowHeight, nowSe
   }
 
   return (
-    <div style={{ position: "relative", background: "#fff", border: "1px solid rgba(0,0,0,.07)", borderRadius: 14, overflow: "hidden" }}>
+    <div style={{ position: "relative", ...gridPane, borderRadius: 16, overflow: "hidden" }}>
       {rows}
       {nowLine}
     </div>

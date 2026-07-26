@@ -39,6 +39,9 @@ import { DayGrid } from "./components/DayGrid";
 import { AllDayStrip } from "./components/AllDayStrip";
 import { MobileTabBar, type MobileTab } from "./components/MobileTabBar";
 import { MobileCalendar } from "./components/MobileCalendar";
+import { GlassBackdrop } from "./components/GlassBackdrop";
+import { APP_BG, INK, control } from "./lib/glass";
+import { solidOf, tintOf } from "./lib/colors";
 
 const VACATION_END = "2026-08-17"; // 여름방학 종료 (D-day 기준)
 
@@ -341,8 +344,8 @@ export function App() {
   ) : null;
 
   const mNav: React.CSSProperties = {
-    width: 30, height: 30, flex: "none", border: "1px solid rgba(0,0,0,.09)", borderRadius: 9,
-    background: "#fff", color: "#8a8880", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+    width: 32, height: 32, flex: "none", ...control, borderRadius: 11,
+    cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
   };
   const chevL = <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M15 5l-7 7 7 7" /></svg>;
   const chevR = <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M9 5l7 7-7 7" /></svg>;
@@ -351,8 +354,9 @@ export function App() {
   // ---------- mobile layout ----------
   if (isMobile) {
     return (
-      <div style={{ width: "100%", height: "100dvh", display: "flex", flexDirection: "column", background: "#faf9f6", color: "#2b2a27", position: "relative", fontSize: 14, overflow: "hidden" }}>
-        <div className="noscroll" style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
+      <div style={{ width: "100%", height: "100dvh", display: "flex", flexDirection: "column", background: APP_BG, color: INK.strong, position: "relative", fontSize: 14, overflow: "hidden" }}>
+        <GlassBackdrop />
+        <div className="noscroll" style={{ position: "relative", zIndex: 1, flex: 1, minHeight: 0, overflowY: "auto" }}>
           {mtab === "timer" && (
             <div style={{ padding: "18px 18px 24px" }}>
               <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 16 }}>
@@ -383,8 +387,8 @@ export function App() {
                 <div style={{ fontSize: 17, fontWeight: 800, letterSpacing: "-.01em" }}>{longDateLabel(viewedDateKey)}</div>
                 <button onClick={() => setViewedDateKey((k) => addDaysKey(k, 1))} className="hoverable" style={mNav} aria-label="다음 날">{chevR}</button>
                 <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 12, fontSize: 11, color: "#a8a59d", fontWeight: 600 }}>
-                  <span style={{ display: "flex", alignItems: "center", gap: 5 }}>{swatch("oklch(0.94 0.045 255)")}계획</span>
-                  <span style={{ display: "flex", alignItems: "center", gap: 5 }}>{swatch("oklch(0.64 0.13 255)")}실제</span>
+                  <span style={{ display: "flex", alignItems: "center", gap: 5 }}>{swatch(tintOf(255))}계획</span>
+                  <span style={{ display: "flex", alignItems: "center", gap: 5 }}>{swatch(solidOf(255))}실제</span>
                 </div>
               </div>
               <div style={{ marginBottom: 10 }}><AllDayStrip items={daySchedule?.allDay ?? []} /></div>
@@ -437,10 +441,11 @@ export function App() {
 
   // ---------- desktop / iPad layout ----------
   return (
-    <div style={{ width: "100vw", height: "100dvh", display: "flex", background: "#faf9f6", color: "#2b2a27", overflow: "hidden", position: "relative", fontSize: 14 }}>
+    <div style={{ width: "100vw", height: "100dvh", display: "flex", background: APP_BG, color: INK.strong, overflow: "hidden", position: "relative", fontSize: 14 }}>
+      <GlassBackdrop />
       <SideNav view={view} onChange={setView} />
 
-      <main style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
+      <main style={{ position: "relative", zIndex: 1, flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
         {view === "planner" && (
           <PlannerView
             todayTotalStr={fmtHM(totalSecForDay(secToday))}

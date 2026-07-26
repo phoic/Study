@@ -1,4 +1,4 @@
-/* Base styles ported from the 공부 타이머.dc.html prototype's <helmet> block. */
+/* Base styles ported from the 공부 타이머 글래스.dc.html prototype's <helmet> block. */
 * {
   box-sizing: border-box;
 }
@@ -15,7 +15,8 @@ body,
 body {
   font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
     system-ui, sans-serif;
-  background: #e9e7e1;
+  background: linear-gradient(135deg, #eef1fb 0%, #f6eef7 45%, #eef6f4 100%);
+  background-attachment: fixed;
   color: #2b2a27;
   -webkit-font-smoothing: antialiased;
   overscroll-behavior: none;
@@ -28,8 +29,10 @@ a:hover {
   color: oklch(0.48 0.1 250);
 }
 
-/* tabular numerals for all the clocks/counters */
+/* tabular numerals for all the clocks/counters — Nunito gives the glass theme
+   its rounder, friendlier digits (glass prototype's .tnum rule). */
 .tnum {
+  font-family: "Nunito", -apple-system, sans-serif;
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
 }
@@ -43,7 +46,7 @@ button {
   height: 9px;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.14);
+  background: rgba(90, 80, 110, 0.22);
   border-radius: 6px;
   border: 2px solid transparent;
   background-clip: padding-box;
@@ -74,6 +77,23 @@ button {
   50% {
     transform: scale(1.5);
     opacity: 0.35;
+  }
+}
+/* the slow drift of the background color blobs */
+@keyframes glassdrift {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(3%, -4%) scale(1.08);
+  }
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [style*="glassdrift"] {
+    animation: none !important;
   }
 }
 

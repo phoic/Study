@@ -1,6 +1,7 @@
 import type { Session } from "../types";
 import { SUBJECTS, subById } from "../data/subjects";
 import { addDaysKey, fmtHM, studyDayKey, weekdayOfKey } from "../lib/time";
+import { INK, cardSoft, chip } from "../lib/glass";
 
 interface Props {
   sessions: Session[];
@@ -13,9 +14,7 @@ interface Props {
 }
 
 const card = (children: React.ReactNode, extra: React.CSSProperties = {}) => (
-  <div style={{ background: "#fff", border: "1px solid rgba(0,0,0,.06)", borderRadius: 16, padding: "18px 20px", boxShadow: "0 1px 2px rgba(0,0,0,.03)", ...extra }}>
-    {children}
-  </div>
+  <div style={{ ...cardSoft, borderRadius: 18, padding: "18px 20px", ...extra }}>{children}</div>
 );
 const label = (t: string) => <div style={{ fontSize: 12, color: "#9a978f", fontWeight: 700 }}>{t}</div>;
 
@@ -81,7 +80,7 @@ export function RecordView({ sessions, startHour, todayKey, accentSolid, monthLa
         <span style={{ width: 82, flex: "none", fontSize: 12.5, fontWeight: 600, color: "#4a4840", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
           {s.name}
         </span>
-        <div style={{ flex: 1, height: 10, borderRadius: 6, background: "#f0eee7", overflow: "hidden", position: "relative" }}>
+        <div style={{ flex: 1, height: 10, borderRadius: 6, background: "rgba(90,80,110,.1)", overflow: "hidden", position: "relative" }}>
           <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: `${(goalH / maxH) * 100}%`, background: s.tint }} />
           <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: `${Math.min(1, doneH / maxH) * 100}%`, background: s.solid, borderRadius: 6 }} />
         </div>
@@ -112,7 +111,7 @@ export function RecordView({ sessions, startHour, todayKey, accentSolid, monthLa
               maxWidth: 20,
               height: `${Math.min(1, x.sec / maxD) * 100}%`,
               minHeight: x.sec > 0 ? 4 : 0,
-              background: x.today ? accentSolid : weekdayOfKey(x.dayKey) % 6 === 0 ? "#e4e0d5" : "#d9d5ca",
+              background: x.today ? accentSolid : weekdayOfKey(x.dayKey) % 6 === 0 ? "rgba(90,80,110,.16)" : "rgba(90,80,110,.22)",
               borderRadius: "5px 5px 3px 3px",
             }}
           />
@@ -133,7 +132,7 @@ export function RecordView({ sessions, startHour, todayKey, accentSolid, monthLa
       {!stacked && (
         <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 20 }}>
           <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: "-.02em" }}>학습 기록</div>
-          <div style={{ fontSize: 12.5, color: "#a8a59d", fontWeight: 600, background: "#f2f0ea", padding: "5px 11px", borderRadius: 8 }}>{monthLabel}</div>
+          <div style={{ fontSize: 12.5, color: INK.muted, fontWeight: 600, ...chip, padding: "5px 11px", borderRadius: 9 }}>{monthLabel}</div>
         </div>
       )}
       <div style={stacked ? { display: "flex", flexDirection: "column", gap: 12 } : { flex: 1, minHeight: 0, display: "flex", flexDirection: "column", gap: 14 }}>

@@ -1,3 +1,5 @@
+import { row as glassRow } from "../lib/glass";
+
 export interface SubjectRow {
   id: number;
   name: string;
@@ -29,8 +31,11 @@ export function SubjectList({ rows, onSelect }: Props) {
             gap: 12,
             width: "100%",
             textAlign: "left",
-            border: `1px solid ${s.recommended ? "rgba(210,140,40,.5)" : s.on ? "rgba(0,0,0,.12)" : "rgba(0,0,0,.05)"}`,
-            background: s.recommended ? "#fdfaf2" : s.on ? "#f4f2ec" : "#fff",
+            ...glassRow(s.on),
+            ...(s.recommended && {
+              background: "linear-gradient(160deg,rgba(255,252,242,.86),rgba(255,248,232,.55))",
+              border: "1px solid rgba(226,178,92,.55)",
+            }),
             borderRadius: 13,
             padding: "11px 13px",
             cursor: "pointer",
@@ -57,8 +62,8 @@ export function SubjectList({ rows, onSelect }: Props) {
                     flex: "none",
                     fontSize: 10.5,
                     fontWeight: 700,
-                    color: "#b9791a",
-                    background: "#faefd6",
+                    color: "#a86e15",
+                    background: "rgba(250,235,205,.85)",
                     borderRadius: 6,
                     padding: "2px 6px",
                     whiteSpace: "nowrap",
@@ -68,7 +73,7 @@ export function SubjectList({ rows, onSelect }: Props) {
                 </span>
               )}
             </div>
-            <div style={{ height: 4, borderRadius: 3, background: "#eeece5", marginTop: 7, overflow: "hidden" }}>
+            <div style={{ height: 4, borderRadius: 3, background: "rgba(90,80,110,.12)", marginTop: 7, overflow: "hidden" }}>
               <div style={{ height: "100%", width: s.pct, background: s.solid, borderRadius: 3 }} />
             </div>
           </div>

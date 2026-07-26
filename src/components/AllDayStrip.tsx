@@ -1,5 +1,6 @@
 import type { AllDayItem } from "../types";
 import { subById } from "../data/subjects";
+import { chip } from "../lib/glass";
 
 interface Props {
   items: AllDayItem[];
@@ -30,9 +31,8 @@ export function AllDayStrip({ items }: Props) {
               display: "flex",
               alignItems: "center",
               gap: 7,
-              background: "#fff",
-              border: "1px solid rgba(0,0,0,.07)",
-              borderRadius: 9,
+              ...chip,
+              borderRadius: 11,
               padding: "5px 11px",
             }}
           >
