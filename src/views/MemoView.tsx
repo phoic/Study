@@ -354,7 +354,7 @@ export function MemoView({ notes, selectedId, onAdd, onToggle, onDelete, stacked
           style={{
             position: "fixed",
             right: 18,
-            bottom: "calc(78px + env(safe-area-inset-bottom))",
+            bottom: "calc(86px + env(safe-area-inset-bottom))",
             zIndex: 25,
             width: 56,
             height: 56,

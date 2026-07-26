@@ -356,9 +356,14 @@ export function App() {
     return (
       <div style={{ width: "100%", height: "100dvh", display: "flex", flexDirection: "column", background: APP_BG, color: INK.strong, position: "relative", fontSize: 14, overflow: "hidden" }}>
         <GlassBackdrop />
-        <div className="noscroll" style={{ position: "relative", zIndex: 1, flex: 1, minHeight: 0, overflowY: "auto" }}>
+        {/* 탭바가 떠 있어 콘텐츠가 그 아래로 흘러간다(유리가 굴절할 게 있어야 하므로).
+            캡슐 높이 + 여백만큼 바닥을 비워 마지막 항목이 가리지 않게 한다. */}
+        <div
+          className="noscroll"
+          style={{ position: "relative", zIndex: 1, flex: 1, minHeight: 0, overflowY: "auto", paddingBottom: "calc(84px + env(safe-area-inset-bottom))" }}
+        >
           {mtab === "timer" && (
-            <div style={{ padding: "10px 18px 24px" }}>
+            <div style={{ padding: "10px 18px 12px" }}>
               <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 16 }}>
                 <div>
                   <div style={{ fontSize: 11.5, color: "#8d8a99", fontWeight: 700 }}>오늘 총 공부</div>
@@ -381,7 +386,7 @@ export function App() {
           )}
 
           {mtab === "timeline" && (
-            <div style={{ padding: "10px 14px 30px" }}>
+            <div style={{ padding: "10px 14px 12px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "0 2px 12px" }}>
                 <button onClick={() => setViewedDateKey((k) => addDaysKey(k, -1))} className="hoverable" style={mNav} aria-label="이전 날">{chevL}</button>
                 <div style={{ fontSize: 17, fontWeight: 800, letterSpacing: "-.01em" }}>{longDateLabel(viewedDateKey)}</div>
@@ -397,7 +402,7 @@ export function App() {
           )}
 
           {mtab === "calendar" && (
-            <div style={{ padding: "10px 14px 30px" }}>
+            <div style={{ padding: "10px 14px 12px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
                 <button onClick={() => setCalYm((v) => shiftYm(v, -1))} className="hoverable" style={mNav} aria-label="이전 달">{chevL}</button>
                 <div style={{ fontSize: 19, fontWeight: 800, letterSpacing: "-.02em", minWidth: 92, textAlign: "center" }}>{ymLabel(calYm)}</div>
@@ -409,7 +414,7 @@ export function App() {
           )}
 
           {mtab === "record" && (
-            <div style={{ padding: "10px 16px 30px" }}>
+            <div style={{ padding: "10px 16px 12px" }}>
               <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-.02em" }}>학습 기록</div>
               <div style={{ fontSize: 12, color: "#a8a59d", fontWeight: 600, margin: "4px 0 16px" }}>{ymLabel(ymOfKey(todayKey))}</div>
               <RecordView sessions={sessions} startHour={startHour} todayKey={todayKey} accentSolid={sel.solid} monthLabel={ymLabel(ymOfKey(todayKey))} goalHById={goalHById} stacked />
@@ -417,7 +422,7 @@ export function App() {
           )}
 
           {mtab === "memo" && (
-            <div style={{ padding: "10px 16px 90px" }}>
+            <div style={{ padding: "10px 16px 12px" }}>
               <MemoView notes={notes} selectedId={timerState.selectedId} onAdd={addNote} onToggle={toggleNote} onDelete={deleteNote} stacked />
             </div>
           )}
