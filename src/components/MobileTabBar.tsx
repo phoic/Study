@@ -1,4 +1,4 @@
-import { INK, navPane } from "../lib/glass";
+import { frost } from "../lib/glass";
 
 export type MobileTab = "timer" | "timeline" | "calendar" | "record" | "memo";
 
@@ -67,14 +67,15 @@ export function MobileTabBar({ tab, onChange }: Props) {
     <nav
       style={{
         position: "relative",
-        zIndex: 1,
+        zIndex: 20,
         flex: "none",
-        height: 64,
-        ...navPane,
-        borderTop: "1px solid rgba(255,255,255,.5)",
+        background: "linear-gradient(180deg,rgba(255,255,255,.62),rgba(255,255,255,.78))",
+        ...frost(30, 180),
+        borderTop: "1px solid rgba(255,255,255,.7)",
+        boxShadow: "0 -8px 24px -16px rgba(50,40,70,.3)",
         display: "grid",
         gridTemplateColumns: "repeat(5,1fr)",
-        padding: "8px 8px calc(8px + env(safe-area-inset-bottom))",
+        padding: "9px 6px calc(12px + env(safe-area-inset-bottom))",
       }}
     >
       {items.map((it) => {
@@ -85,18 +86,21 @@ export function MobileTabBar({ tab, onChange }: Props) {
             onClick={() => onChange(it.tab)}
             style={{
               border: 0,
-              background: "transparent",
-              color: on ? "#4a4656" : INK.hint,
+              background: on ? "rgba(255,255,255,.72)" : "transparent",
+              borderRadius: 15,
+              color: on ? "#3f3a52" : "#a8a5b0",
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
+              justifyContent: "center",
               gap: 4,
+              padding: "6px 0",
               cursor: "pointer",
               fontWeight: 600,
             }}
           >
             {it.icon}
-            <span style={{ fontSize: 10.5 }}>{it.label}</span>
+            <span style={{ fontSize: 10 }}>{it.label}</span>
           </button>
         );
       })}

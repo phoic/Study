@@ -82,10 +82,62 @@ export const chip: React.CSSProperties = {
 /** List row — `on` is the selected subject. */
 export function row(on: boolean): React.CSSProperties {
   return {
-    background: on ? "rgba(255,255,255,.72)" : "rgba(255,255,255,.4)",
-    border: `1px solid ${on ? "rgba(255,255,255,.85)" : "rgba(255,255,255,.55)"}`,
+    background: on
+      ? "linear-gradient(160deg,rgba(255,255,255,.78),rgba(255,255,255,.5))"
+      : "linear-gradient(160deg,rgba(255,255,255,.55),rgba(255,255,255,.32))",
+    border: `1px solid ${on ? "rgba(255,255,255,.85)" : "rgba(255,255,255,.6)"}`,
+    boxShadow: on
+      ? "0 10px 24px -14px rgba(50,40,70,.4),inset 0 1px 0 rgba(255,255,255,.9)"
+      : "inset 0 1px 0 rgba(255,255,255,.75)",
+    ...frost(20, 160),
   };
 }
+
+/** Grouped list card — hairline-divided sections, so it carries no inner padding. */
+export const groupCard: React.CSSProperties = {
+  background: "linear-gradient(160deg,rgba(255,255,255,.66),rgba(255,255,255,.36))",
+  border: "1px solid rgba(255,255,255,.66)",
+  boxShadow: "0 10px 28px -16px rgba(50,40,70,.3),inset 0 1px 0 rgba(255,255,255,.85)",
+  ...frost(24, 165),
+};
+
+/** Bottom sheet pane (phone add-sheet) — the brightest pane in the system. */
+export const sheetPane: React.CSSProperties = {
+  background: "linear-gradient(165deg,rgba(255,255,255,.86),rgba(255,255,255,.68))",
+  border: "1px solid rgba(255,255,255,.8)",
+  boxShadow: "0 26px 60px -20px rgba(50,40,80,.5),inset 0 1px 0 rgba(255,255,255,.95)",
+  ...frost(40, 180),
+};
+
+/** Segmented control (대기 / 전체) — a tray with a lifted active pill. */
+export const segmentTray: React.CSSProperties = {
+  display: "flex",
+  gap: 6,
+  padding: 4,
+  background: "rgba(255,255,255,.42)",
+  border: "1px solid rgba(255,255,255,.62)",
+  borderRadius: 14,
+  boxShadow: "inset 0 1px 0 rgba(255,255,255,.8)",
+  ...frost(18),
+};
+
+export function segmentItem(on: boolean): React.CSSProperties {
+  return {
+    flex: 1,
+    border: 0,
+    borderRadius: 10,
+    padding: "9px 0",
+    fontSize: 13,
+    fontWeight: 700,
+    cursor: "pointer",
+    background: on ? "linear-gradient(160deg,rgba(255,255,255,.96),rgba(255,255,255,.72))" : "transparent",
+    color: on ? "#4a4656" : INK.muted,
+    boxShadow: on ? "0 5px 14px -7px rgba(50,40,70,.4),inset 0 1px 0 rgba(255,255,255,.9)" : "none",
+  };
+}
+
+/** Accent gradient shared by the primary CTA and the memo FAB. */
+export const ACCENT_GRAD = "linear-gradient(160deg,oklch(0.7 0.14 285),oklch(0.6 0.13 300))";
 
 /** The day-grid container. */
 export const gridPane: React.CSSProperties = {

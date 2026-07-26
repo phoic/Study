@@ -56,7 +56,9 @@ export function RecordView({ sessions, startHour, todayKey, accentSolid, monthLa
           {sub}
         </div>,
       ],
-      { flex: stacked ? "1 1 100px" : 1, minWidth: stacked ? 100 : undefined },
+      // 390px에서 3개를 한 줄에 넣으면 보조 문구가 두 줄로 접힌다 — 2개씩 흘리고
+      // 마지막 카드가 남은 줄을 채우게 한다.
+      { flex: stacked ? "1 1 calc(50% - 5px)" : 1, minWidth: 0 },
     );
 
   const topRow = (
@@ -102,7 +104,7 @@ export function RecordView({ sessions, startHour, todayKey, accentSolid, monthLa
   });
   const maxD = Math.max(1, ...days.map((d) => d.sec), 3600 * 4); // at least a 4h ceiling for scale
   const bars = (
-    <div style={{ flex: stacked ? "none" : 1, height: stacked ? 130 : undefined, display: "flex", alignItems: "flex-end", gap: 6, minHeight: 0 }}>
+    <div key="bars" style={{ flex: stacked ? "none" : 1, height: stacked ? 130 : undefined, display: "flex", alignItems: "flex-end", gap: 6, minHeight: 0 }}>
       {days.map((x) => (
         <div key={x.dayKey} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, height: "100%", justifyContent: "flex-end" }}>
           <div

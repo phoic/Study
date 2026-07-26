@@ -358,30 +358,30 @@ export function App() {
         <GlassBackdrop />
         <div className="noscroll" style={{ position: "relative", zIndex: 1, flex: 1, minHeight: 0, overflowY: "auto" }}>
           {mtab === "timer" && (
-            <div style={{ padding: "18px 18px 24px" }}>
+            <div style={{ padding: "10px 18px 24px" }}>
               <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 16 }}>
                 <div>
-                  <div style={{ fontSize: 12, color: "#9a978f", fontWeight: 600 }}>오늘 총 공부</div>
-                  <div className="tnum" style={{ fontSize: 30, fontWeight: 800, letterSpacing: "-.02em", marginTop: 2 }}>{fmtHM(totalSecForDay(secToday))}</div>
+                  <div style={{ fontSize: 11.5, color: "#8d8a99", fontWeight: 700 }}>오늘 총 공부</div>
+                  <div className="tnum" style={{ fontSize: 31, fontWeight: 800, letterSpacing: "-.02em", marginTop: 2 }}>{fmtHM(totalSecForDay(secToday))}</div>
                 </div>
                 <div style={{ textAlign: "right" }}>
-                  <div style={{ fontSize: 12, color: "#9a978f", fontWeight: 600 }}>{longDateLabel(todayKey)}</div>
-                  <div style={{ fontSize: 12, color: "#c0bdb4", marginTop: 3 }}>여름방학 D-{dDayTo(todayKey, VACATION_END)}</div>
+                  <div style={{ fontSize: 11.5, color: "#8d8a99", fontWeight: 700 }}>{longDateLabel(todayKey)}</div>
+                  <div style={{ fontSize: 11.5, color: "#b0aeb8", fontWeight: 600, marginTop: 3 }}>여름방학 D-{dDayTo(todayKey, VACATION_END)}</div>
                 </div>
               </div>
               <div style={{ marginBottom: 20 }}>
                 <TimerCard subject={sel} remainingStr={fmtHMlabel(remainingSec)} elapsedStr={fmtHMS(selTodaySec)} running={timerState.running} onToggle={startFocus} onReset={clearSelectedToday} />
               </div>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", margin: "0 2px 12px" }}>
-                <span style={{ fontSize: 13, fontWeight: 700, color: "#6d6a62" }}>오늘 과목</span>
-                <span style={{ fontSize: 11, color: "#b3b0a7", fontWeight: 600 }}>오늘 공부한 시간</span>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", margin: "0 4px 10px" }}>
+                <span style={{ fontSize: 12.5, fontWeight: 700, color: "#6d6a76" }}>오늘 과목</span>
+                <span style={{ fontSize: 11, color: "#b0aeb8", fontWeight: 600 }}>공부 시간 / 목표</span>
               </div>
               <SubjectList rows={subjectRows} onSelect={timer.selectSubject} />
             </div>
           )}
 
           {mtab === "timeline" && (
-            <div style={{ padding: "14px 14px 24px" }}>
+            <div style={{ padding: "10px 14px 30px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "0 2px 12px" }}>
                 <button onClick={() => setViewedDateKey((k) => addDaysKey(k, -1))} className="hoverable" style={mNav} aria-label="이전 날">{chevL}</button>
                 <div style={{ fontSize: 17, fontWeight: 800, letterSpacing: "-.01em" }}>{longDateLabel(viewedDateKey)}</div>
@@ -397,7 +397,7 @@ export function App() {
           )}
 
           {mtab === "calendar" && (
-            <div style={{ padding: "14px 14px 24px" }}>
+            <div style={{ padding: "10px 14px 30px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
                 <button onClick={() => setCalYm((v) => shiftYm(v, -1))} className="hoverable" style={mNav} aria-label="이전 달">{chevL}</button>
                 <div style={{ fontSize: 19, fontWeight: 800, letterSpacing: "-.02em", minWidth: 92, textAlign: "center" }}>{ymLabel(calYm)}</div>
@@ -409,7 +409,7 @@ export function App() {
           )}
 
           {mtab === "record" && (
-            <div style={{ padding: "16px 16px 24px" }}>
+            <div style={{ padding: "10px 16px 30px" }}>
               <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-.02em" }}>학습 기록</div>
               <div style={{ fontSize: 12, color: "#a8a59d", fontWeight: 600, margin: "4px 0 16px" }}>{ymLabel(ymOfKey(todayKey))}</div>
               <RecordView sessions={sessions} startHour={startHour} todayKey={todayKey} accentSolid={sel.solid} monthLabel={ymLabel(ymOfKey(todayKey))} goalHById={goalHById} stacked />
@@ -417,8 +417,7 @@ export function App() {
           )}
 
           {mtab === "memo" && (
-            <div style={{ padding: "16px 16px 24px" }}>
-              <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-.02em", marginBottom: 14 }}>재풀이 메모</div>
+            <div style={{ padding: "10px 16px 90px" }}>
               <MemoView notes={notes} selectedId={timerState.selectedId} onAdd={addNote} onToggle={toggleNote} onDelete={deleteNote} stacked />
             </div>
           )}

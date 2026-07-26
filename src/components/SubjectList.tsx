@@ -19,7 +19,7 @@ interface Props {
 
 export function SubjectList({ rows, onSelect }: Props) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
       {rows.map((s) => (
         <button
           key={s.id}
@@ -36,8 +36,8 @@ export function SubjectList({ rows, onSelect }: Props) {
               background: "linear-gradient(160deg,rgba(255,252,242,.86),rgba(255,248,232,.55))",
               border: "1px solid rgba(226,178,92,.55)",
             }),
-            borderRadius: 13,
-            padding: "11px 13px",
+            borderRadius: 18,
+            padding: "13px 14px",
             cursor: "pointer",
           }}
         >
@@ -46,9 +46,9 @@ export function SubjectList({ rows, onSelect }: Props) {
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <span
                 style={{
-                  fontSize: 14,
+                  fontSize: 14.5,
                   fontWeight: 600,
-                  color: "#3a382f",
+                  color: "#3a3840",
                   whiteSpace: "nowrap",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
@@ -73,7 +73,7 @@ export function SubjectList({ rows, onSelect }: Props) {
                 </span>
               )}
             </div>
-            <div style={{ height: 4, borderRadius: 3, background: "rgba(90,80,110,.12)", marginTop: 7, overflow: "hidden" }}>
+            <div style={{ height: 5, borderRadius: 3, background: "rgba(120,110,140,.14)", marginTop: 7, overflow: "hidden" }}>
               <div style={{ height: "100%", width: s.pct, background: s.solid, borderRadius: 3 }} />
             </div>
           </div>

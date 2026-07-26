@@ -42,8 +42,9 @@ export function MobileCalendar({ ym, eventsByDay, todayKey, accent, onSelectDay 
           aspectRatio: "1 / 1.15",
           background: active ? (weekend ? "rgba(255,255,255,.34)" : "rgba(255,255,255,.55)") : "rgba(255,255,255,.16)",
           ...(active ? frost(14, 150) : {}),
-          border: "1px solid rgba(255,255,255,.55)",
-          borderRadius: 13,
+          border: "1px solid rgba(255,255,255,.62)",
+          borderRadius: 14,
+          boxShadow: "inset 0 1px 0 rgba(255,255,255,.8)",
           padding: "5px 0 6px",
           display: "flex",
           flexDirection: "column",
@@ -65,7 +66,8 @@ export function MobileCalendar({ ym, eventsByDay, todayKey, accent, onSelectDay 
             fontSize: 13.5,
             fontWeight: today ? 800 : 600,
             color: today ? "#fff" : wcol(wday),
-            background: today ? accent : "transparent",
+            background: today ? `linear-gradient(160deg,${accent},oklch(0.6 0.13 290))` : "transparent",
+            boxShadow: today ? "0 6px 14px -6px rgba(60,45,110,.55)" : "none",
           }}
         >
           {d}
